@@ -36,7 +36,6 @@ class InfiniteCanvasNode<T> {
   final bool allowMove;
   final Clip clipBehavior;
   Rect get rect => offset & _size;
-  static const double dragHandleSize = 10;
   static const double borderInset = 2;
 
   void update(
@@ -69,20 +68,13 @@ class InfiniteCanvasNode<T> {
     }
 
     if (size != null && resizeHandlesMode.isEnabled) {
-      if (size.width < dragHandleSize * 2) {
-        size = Size(dragHandleSize * 2, size.height);
-      }
-      if (size.height < dragHandleSize * 2) {
-        size = Size(size.width, dragHandleSize * 2);
-      }
       setSize(size, minimumNodeSize);
     }
     if (label != null) this.label = label;
-  }
 
-  void updateAfterChangedMinNodeSize(Size minimumNodeSize) {
-    if (_size.width < minimumNodeSize.width ||
-        _size.height < minimumNodeSize.height) {
+    if (minimumNodeSize != null &&
+        (_size.width < minimumNodeSize.width ||
+            _size.height < minimumNodeSize.height)) {
       setSize(_size, minimumNodeSize);
     }
   }

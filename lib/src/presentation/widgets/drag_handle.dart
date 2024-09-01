@@ -8,18 +8,18 @@ class DragHandle extends StatefulWidget {
   final InfiniteCanvasController controller;
   final InfiniteCanvasNode node;
   final DragHandleAlignment alignment;
-  final double size;
+  final Size size;
   final Size gridSize;
-  final bool initialSnapToGrid;
+  final bool snapToGrid;
 
   const DragHandle({
     super.key,
     required this.controller,
     required this.node,
     required this.alignment,
-    this.size = 10,
+    required this.size,
     required this.gridSize,
-    this.initialSnapToGrid = true,
+    this.snapToGrid = true,
   });
 
   @override
@@ -29,10 +29,6 @@ class DragHandle extends StatefulWidget {
 class _DragHandleState extends State<DragHandle> {
   late final InfiniteCanvasController controller;
   late final InfiniteCanvasNode node;
-  late final DragHandleAlignment al;
-  late final double size;
-  late Size gridSize;
-  late bool snapToGrid;
 
   late Rect initialBounds;
   late Rect minimumSizeBounds;
@@ -44,33 +40,17 @@ class _DragHandleState extends State<DragHandle> {
     super.initState();
     controller = widget.controller;
     node = widget.node;
-    al = widget.alignment;
-    size = widget.size;
-    gridSize = widget.gridSize;
-    snapToGrid = widget.initialSnapToGrid;
-
-    controllerListener = () {
-      setState(() {
-        if (controller.gridSize != gridSize) {
-          gridSize = controller.gridSize;
-        }
-        if (controller.snapResizeToGrid != snapToGrid) {
-          snapToGrid = controller.snapResizeToGrid;
-        }
-      });
-    };
-    controller.addListener(controllerListener);
   }
 
   @override
   void dispose() {
     super.dispose();
-    controller.removeListener(controllerListener);
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final al = widget.alignment;
     final minimumNodeSize = controller.minimumNodeSize;
     return Listener(
         onPointerDown: (details) {
@@ -110,11 +90,13 @@ class _DragHandleState extends State<DragHandle> {
                 newBounds.bottom);
           }
 
-          if (snapToGrid && (al.isLeft || al.isTop)) {
-            final snappedLeft = adjustEdgeToGrid(newBounds.left, gridSize.width,
-                maximum: minimumSizeBounds.left, allowMinAndMaxSizes: true);
-            final snappedTop = adjustEdgeToGrid(newBounds.top, gridSize.height,
-                maximum: minimumSizeBounds.top, allowMinAndMaxSizes: true);
+          if (widget.snapToGrid && (al.isLeft || al.isTop)) {
+            final snappedLeft = adjustEdgeToGrid(
+                newBounds.left, widget.gridSize.width,
+                maximum: minimumSizeBounds.left, allowMinAndMaxSizes: false);
+            final snappedTop = adjustEdgeToGrid(
+                newBounds.top, widget.gridSize.height,
+                maximum: minimumSizeBounds.top, allowMinAndMaxSizes: false);
             newBounds = Rect.fromLTRB(
                 snappedLeft, snappedTop, newBounds.right, newBounds.bottom);
           }
@@ -135,12 +117,12 @@ class _DragHandleState extends State<DragHandle> {
                     newBounds.height + draggingOffset.dy));
           }
 
-          if (snapToGrid && (al.isRight || al.isBottom)) {
+          if (widget.snapToGrid && (al.isRight || al.isBottom)) {
             final snappedRight = adjustEdgeToGrid(
-                newBounds.right, gridSize.width,
+                newBounds.right, widget.gridSize.width,
                 minimum: minimumSizeBounds.right);
             final snappedBottom = adjustEdgeToGrid(
-                newBounds.bottom, gridSize.height,
+                newBounds.bottom, widget.gridSize.height,
                 minimum: minimumSizeBounds.bottom);
             newBounds = Rect.fromLTRB(
                 newBounds.left, newBounds.top, snappedRight, snappedBottom);
@@ -154,8 +136,8 @@ class _DragHandleState extends State<DragHandle> {
           controller.edit(node);
         },
         child: Container(
-          height: size,
-          width: size,
+          width: widget.size.width,
+          height: widget.size.height,
           decoration: BoxDecoration(
             color: colors.surfaceVariant,
             border: Border.all(

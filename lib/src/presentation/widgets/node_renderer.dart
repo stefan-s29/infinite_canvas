@@ -10,10 +10,12 @@ class NodeRenderer extends StatelessWidget {
     super.key,
     required this.node,
     required this.controller,
+    required this.dragHandleSize,
   });
 
   final InfiniteCanvasNode node;
   final InfiniteCanvasController controller;
+  final Size dragHandleSize;
 
   static const double borderInset = 2;
 
@@ -97,21 +99,22 @@ class NodeRenderer extends StatelessWidget {
         left: dragHandleAlignment.isLeft
             ? 0
             : dragHandleAlignment.isHorizontalCenter
-                ? node.size.width / 2
+                ? node.size.width / 2 - dragHandleSize.width / 2
                 : null,
         right: dragHandleAlignment.isRight ? 0 : null,
         top: dragHandleAlignment.isTop
             ? 0
             : dragHandleAlignment.isVerticalCenter
-                ? node.size.height / 2
+                ? node.size.height / 2 - dragHandleSize.height / 2
                 : null,
         bottom: dragHandleAlignment.isBottom ? 0 : null,
         child: DragHandle(
           controller: controller,
           node: node,
           alignment: dragHandleAlignment,
+          size: dragHandleSize,
           gridSize: controller.gridSize,
-          initialSnapToGrid: controller.snapResizeToGrid,
+          snapToGrid: controller.snapResizeToGrid,
         ));
   }
 }
