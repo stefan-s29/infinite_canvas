@@ -87,6 +87,14 @@ class InfiniteCanvasNode<T> {
     }
   }
 
+  void alignWithGrid(Size gridSize) {
+    final snappedX =
+        _getClosestSnapPosition(offset.dx, size.width, gridSize.width);
+    final snappedY =
+        _getClosestSnapPosition(offset.dy, size.height, gridSize.height);
+    this.offset = Offset(snappedX, snappedY);
+  }
+
   void resizeToFitGrid(Size gridSize,
       {Size? minimumNodeSize, SnapMode snapMode = SnapMode.closest}) {
     final currentBounds = offset & size;

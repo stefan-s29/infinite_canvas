@@ -426,6 +426,17 @@ class InfiniteCanvasController extends ChangeNotifier implements Graph {
     notifyListeners();
   }
 
+  void alignWithGrid() {
+    final selection = _selected.toList();
+    for (final key in selection) {
+      final index = nodes.indexWhere((e) => e.key == key);
+      if (index == -1) continue;
+      final current = nodes[index];
+      current.alignWithGrid(gridSize);
+    }
+    notifyListeners();
+  }
+
   void resizeToFitGrid() {
     final selection = _selected.toList();
     for (final key in selection) {
