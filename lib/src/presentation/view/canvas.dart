@@ -22,7 +22,6 @@ class InfiniteCanvas extends StatefulWidget {
   const InfiniteCanvas(
       {super.key,
       required this.controller,
-      this.gridSize = const Size.square(50),
       this.menuVisible = true,
       this.menus = const [],
       this.backgroundBuilder,
@@ -31,7 +30,6 @@ class InfiniteCanvas extends StatefulWidget {
       this.edgesUseStraightLines = false});
 
   final InfiniteCanvasController controller;
-  final Size gridSize;
   final bool menuVisible;
   final List<MenuEntry> menus;
   final bool drawVisibleOnly;
@@ -112,8 +110,8 @@ class InfiniteCanvasState extends State<InfiniteCanvas> {
       return widget.backgroundBuilder!(context, viewport);
     }
     return GridBackgroundBuilder(
-      cellWidth: widget.gridSize.width,
-      cellHeight: widget.gridSize.height,
+      cellWidth: widget.controller.gridSize.width,
+      cellHeight: widget.controller.gridSize.height,
       viewport: viewport,
     );
   }
@@ -270,8 +268,7 @@ class InfiniteCanvasState extends State<InfiniteCanvas> {
                     controller.pan(details.focalPointDelta);
                   } else if (controller.controlPressed) {
                   } else {
-                    controller.moveSelection(details.focalPoint,
-                        gridSize: widget.gridSize);
+                    controller.moveSelection(details.focalPoint);
                   }
                   controller.mousePosition = details.focalPoint;
                 },

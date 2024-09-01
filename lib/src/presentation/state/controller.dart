@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:infinite_canvas/src/presentation/utils/helpers.dart';
 
 import '../../domain/model/edge.dart';
 import '../../domain/model/graph.dart';
@@ -14,6 +15,9 @@ class InfiniteCanvasController extends ChangeNotifier implements Graph {
   InfiniteCanvasController(
       {List<InfiniteCanvasNode> nodes = const [],
       List<InfiniteCanvasEdge> edges = const [],
+      this.minimumGridSize = const Size(16.0, 16.0),
+      this.maximumGridSize = const Size(128.0, 128.0),
+      Size gridSize = const Size(32.0, 32.0),
       bool snapMovementToGrid = false,
       bool snapResizeToGrid = false}) {
     if (nodes.isNotEmpty) {
@@ -22,6 +26,7 @@ class InfiniteCanvasController extends ChangeNotifier implements Graph {
     if (edges.isNotEmpty) {
       this.edges.addAll(edges);
     }
+    this.gridSize = gridSize;
     _snapMovementToGrid = snapMovementToGrid;
     _snapResizeToGrid = snapResizeToGrid;
   }
@@ -145,6 +150,17 @@ class InfiniteCanvasController extends ChangeNotifier implements Graph {
     notifyListeners();
   }
 
+  final Size minimumGridSize;
+  final Size maximumGridSize;
+
+  Size _gridSize = const Size(32.0, 32.0);
+  Size get gridSize => _gridSize;
+  set gridSize(Size value) {
+    if (value == _gridSize) return;
+    _gridSize = enforceBoundsOnSize(value, minimumGridSize, maximumGridSize);
+    notifyListeners();
+  }
+
   double _scale = 1;
   double get scale => _scale;
   set scale(double value) {
@@ -241,7 +257,7 @@ class InfiniteCanvasController extends ChangeNotifier implements Graph {
     notifyListeners();
   }
 
-  void moveSelection(Offset position, {Size? gridSize}) {
+  void moveSelection(Offset position) {
     final delta = mouseDragStart != null
         ? toLocal(position) - toLocal(mouseDragStart!)
         : toLocal(position);
@@ -301,6 +317,14 @@ class InfiniteCanvasController extends ChangeNotifier implements Graph {
       _selected.clear();
       _selectedOrigins.clear();
     }
+    notifyListeners();
+  }
+
+  void resizeGrid({double widthFactor = 2.0, double heightFactor = 2.0}) {
+    gridSize = enforceBoundsOnSize(
+        Size(_gridSize.width * widthFactor, _gridSize.height * heightFactor),
+        minimumGridSize,
+        maximumGridSize);
     notifyListeners();
   }
 
