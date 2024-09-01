@@ -188,6 +188,11 @@ class _MenusState extends State<Menus> {
           ),
         ),
         MenuEntry(
+          label: 'Resize to fit grid',
+          onPressed: widget.controller.resizeToFitGrid,
+          shortcut: const SingleActivator(LogicalKeyboardKey.keyF, meta: true),
+        ),
+        MenuEntry(
           label: 'Rename',
           onPressed: widget.controller.selection.length == 1
               ? () {

@@ -11,7 +11,6 @@ class DragHandle extends StatefulWidget {
   final double size;
   final Size gridSize;
   final bool initialSnapToGrid;
-  final Size minimumNodeSize;
 
   const DragHandle({
     super.key,
@@ -21,8 +20,6 @@ class DragHandle extends StatefulWidget {
     this.size = 10,
     required this.gridSize,
     this.initialSnapToGrid = true,
-    this.minimumNodeSize = const Size(InfiniteCanvasNode.dragHandleSize * 2,
-        InfiniteCanvasNode.dragHandleSize * 2),
   });
 
   @override
@@ -36,7 +33,6 @@ class _DragHandleState extends State<DragHandle> {
   late final double size;
   late Size gridSize;
   late bool snapToGrid;
-  late final Size minimumNodeSize;
 
   late Rect initialBounds;
   late Rect minimumSizeBounds;
@@ -52,7 +48,6 @@ class _DragHandleState extends State<DragHandle> {
     size = widget.size;
     gridSize = widget.gridSize;
     snapToGrid = widget.initialSnapToGrid;
-    minimumNodeSize = widget.minimumNodeSize;
 
     controllerListener = () {
       setState(() {
@@ -76,6 +71,7 @@ class _DragHandleState extends State<DragHandle> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final minimumNodeSize = controller.minimumNodeSize;
     return Listener(
         onPointerDown: (details) {
           initialBounds = Rect.fromLTWH(node.offset.dx, node.offset.dy,
@@ -116,9 +112,9 @@ class _DragHandleState extends State<DragHandle> {
 
           if (snapToGrid && (al.isLeft || al.isTop)) {
             final snappedLeft = adjustEdgeToGrid(newBounds.left, gridSize.width,
-                maximum: minimumSizeBounds.left);
+                maximum: minimumSizeBounds.left, allowMinAndMaxSizes: true);
             final snappedTop = adjustEdgeToGrid(newBounds.top, gridSize.height,
-                maximum: minimumSizeBounds.top);
+                maximum: minimumSizeBounds.top, allowMinAndMaxSizes: true);
             newBounds = Rect.fromLTRB(
                 snappedLeft, snappedTop, newBounds.right, newBounds.bottom);
           }
@@ -151,6 +147,7 @@ class _DragHandleState extends State<DragHandle> {
           }
 
           node.update(
+              minimumNodeSize: minimumNodeSize,
               size: newBounds.size,
               offset: newBounds.topLeft,
               setCurrentlyResizing: true);
