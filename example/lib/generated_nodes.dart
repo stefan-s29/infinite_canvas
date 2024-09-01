@@ -25,7 +25,7 @@ class _GeneratedNodesState extends State<GeneratedNodes> {
       return InfiniteCanvasNode(
         key: UniqueKey(),
         label: 'Node $index',
-        resizeMode: ResizeMode.cornersAndEdges,
+        resizeHandlesMode: ResizeHandlesMode.cornersAndEdges,
         offset: Offset(
           Random().nextDouble() * 5000,
           Random().nextDouble() * 5000,
@@ -90,7 +90,7 @@ class _GeneratedNodesState extends State<GeneratedNodes> {
                   final node = InfiniteCanvasNode(
                     key: UniqueKey(),
                     label: 'Node ${controller.nodes.length}',
-                    resizeMode: ResizeMode.cornersAndEdges,
+                    resizeHandlesMode: ResizeHandlesMode.cornersAndEdges,
                     offset: controller.mousePosition,
                     size: Size(
                       Random().nextDouble() * 200 + 100,
@@ -122,7 +122,7 @@ class _GeneratedNodesState extends State<GeneratedNodes> {
                   final node = InfiniteCanvasNode(
                     key: UniqueKey(),
                     label: 'Node ${controller.nodes.length}',
-                    resizeMode: ResizeMode.cornersAndEdges,
+                    resizeHandlesMode: ResizeHandlesMode.cornersAndEdges,
                     offset: controller.mousePosition,
                     size: Size(
                       Random().nextDouble() * 200 + 100,
@@ -157,7 +157,7 @@ class _GeneratedNodesState extends State<GeneratedNodes> {
                   final node = InfiniteCanvasNode(
                     key: UniqueKey(),
                     label: 'Node ${controller.nodes.length}',
-                    resizeMode: ResizeMode.cornersAndEdges,
+                    resizeHandlesMode: ResizeHandlesMode.cornersAndEdges,
                     offset: controller.mousePosition,
                     size: Size(
                       Random().nextDouble() * 200 + 100,

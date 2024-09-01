@@ -426,13 +426,14 @@ class InfiniteCanvasController extends ChangeNotifier implements Graph {
     notifyListeners();
   }
 
-  void alignWithGrid() {
+  void alignWithGrid(
+      {PositioningSnapMode snapMode = PositioningSnapMode.closest}) {
     final selection = _selected.toList();
     for (final key in selection) {
       final index = nodes.indexWhere((e) => e.key == key);
       if (index == -1) continue;
       final current = nodes[index];
-      current.alignWithGrid(gridSize);
+      current.alignWithGrid(gridSize, snapMode: snapMode);
     }
     notifyListeners();
   }
@@ -444,7 +445,7 @@ class InfiniteCanvasController extends ChangeNotifier implements Graph {
       if (index == -1) continue;
       final current = nodes[index];
       current.resizeToFitGrid(gridSize,
-          minimumNodeSize: minimumNodeSize, snapMode: SnapMode.closest);
+          minimumNodeSize: minimumNodeSize, snapMode: ResizeSnapMode.closest);
     }
     notifyListeners();
   }
