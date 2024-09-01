@@ -139,7 +139,7 @@ class _DragHandleState extends State<DragHandle> {
           width: widget.size.width,
           height: widget.size.height,
           decoration: BoxDecoration(
-            color: colors.surfaceVariant,
+            color: colors.surfaceContainerHighest,
             border: Border.all(
               color: colors.onSurfaceVariant,
               width: 1,
