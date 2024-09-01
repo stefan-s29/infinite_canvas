@@ -91,8 +91,6 @@ class NodeRenderer extends StatelessWidget {
     );
   }
 
-  static const gridSize = Size.square(50);
-
   Positioned _buildDragHandle(Alignment alignment) {
     final dragHandleAlignment = DragHandleAlignment(alignment);
     return Positioned(
@@ -112,7 +110,7 @@ class NodeRenderer extends StatelessWidget {
           controller: controller,
           node: node,
           alignment: dragHandleAlignment,
-          gridSize: gridSize,
+          gridSize: controller.gridSize,
           initialSnapToGrid: controller.snapResizeToGrid,
         ));
   }

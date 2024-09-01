@@ -104,6 +104,22 @@ class _MenusState extends State<Menus> {
           ),
         ),
         MenuEntry(
+          label: 'Scale Up Grid',
+          onPressed: () =>
+              widget.controller.resizeGrid(widthFactor: 2.0, heightFactor: 2.0),
+          shortcut: const SingleActivator(
+            LogicalKeyboardKey.numpadAdd,
+          ),
+        ),
+        MenuEntry(
+          label: 'Scale Down Grid',
+          onPressed: () =>
+              widget.controller.resizeGrid(widthFactor: 0.5, heightFactor: 0.5),
+          shortcut: const SingleActivator(
+            LogicalKeyboardKey.numpadSubtract,
+          ),
+        ),
+        MenuEntry(
           label: 'Reset',
           onPressed: widget.controller.zoomReset,
         ),

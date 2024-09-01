@@ -13,7 +13,6 @@ class GeneratedNodes extends StatefulWidget {
 
 class _GeneratedNodesState extends State<GeneratedNodes> {
   late InfiniteCanvasController controller;
-  final gridSize = const Size.square(50);
 
   @override
   void initState() {
@@ -80,7 +79,6 @@ class _GeneratedNodesState extends State<GeneratedNodes> {
         drawVisibleOnly: true,
         canAddEdges: true,
         controller: controller,
-        gridSize: gridSize,
         menus: [
           MenuEntry(
             label: 'Create',

@@ -34,13 +34,14 @@ class _DragHandleState extends State<DragHandle> {
   late final InfiniteCanvasNode node;
   late final DragHandleAlignment al;
   late final double size;
-  late final Size gridSize;
+  late Size gridSize;
   late bool snapToGrid;
   late final Size minimumNodeSize;
 
   late Rect initialBounds;
   late Rect minimumSizeBounds;
   late Offset draggingOffset;
+  late VoidCallback controllerListener;
 
   @override
   void initState() {
@@ -53,9 +54,23 @@ class _DragHandleState extends State<DragHandle> {
     snapToGrid = widget.initialSnapToGrid;
     minimumNodeSize = widget.minimumNodeSize;
 
-    controller.addListener(() {
-      snapToGrid = controller.snapResizeToGrid;
-    });
+    controllerListener = () {
+      setState(() {
+        if (controller.gridSize != gridSize) {
+          gridSize = controller.gridSize;
+        }
+        if (controller.snapResizeToGrid != snapToGrid) {
+          snapToGrid = controller.snapResizeToGrid;
+        }
+      });
+    };
+    controller.addListener(controllerListener);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    controller.removeListener(controllerListener);
   }
 
   @override
