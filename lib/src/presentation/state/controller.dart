@@ -15,11 +15,16 @@ class InfiniteCanvasController extends ChangeNotifier implements Graph {
   InfiniteCanvasController(
       {List<InfiniteCanvasNode> nodes = const [],
       List<InfiniteCanvasEdge> edges = const [],
+      minimumNodeSize = const Size(InfiniteCanvasNode.dragHandleSize * 2,
+          InfiniteCanvasNode.dragHandleSize * 2),
       this.minimumGridSize = const Size(16.0, 16.0),
       this.maximumGridSize = const Size(128.0, 128.0),
       Size gridSize = const Size(32.0, 32.0),
       bool snapMovementToGrid = false,
-      bool snapResizeToGrid = false}) {
+      bool snapResizeToGrid = false})
+      : _minimumNodeSize = minimumNodeSize,
+        _snapMovementToGrid = snapMovementToGrid,
+        _snapResizeToGrid = snapResizeToGrid {
     if (nodes.isNotEmpty) {
       this.nodes.addAll(nodes);
     }
@@ -27,8 +32,6 @@ class InfiniteCanvasController extends ChangeNotifier implements Graph {
       this.edges.addAll(edges);
     }
     this.gridSize = gridSize;
-    _snapMovementToGrid = snapMovementToGrid;
-    _snapResizeToGrid = snapResizeToGrid;
   }
 
   double minScale = 0.4;
@@ -42,11 +45,27 @@ class InfiniteCanvasController extends ChangeNotifier implements Graph {
   @override
   final List<InfiniteCanvasEdge> edges = [];
 
-  late bool _snapMovementToGrid;
+  Size _minimumNodeSize;
+  Size get minimumNodeSize => _minimumNodeSize;
+  set minimumNodeSize(Size value) {
+    if (value == _minimumNodeSize) return;
+
+    final oldMinimumNodeSize = _minimumNodeSize;
+    _minimumNodeSize = value;
+
+    if (value.width > oldMinimumNodeSize.width ||
+        value.height > oldMinimumNodeSize.height) {
+      for (final node in nodes) {
+        node.updateAfterChangedMinNodeSize(value);
+      }
+    }
+  }
+
+  bool _snapMovementToGrid;
   bool get snapMovementToGrid => _snapMovementToGrid;
   set snapMovementToGrid(newValue) => _snapMovementToGrid = newValue;
 
-  late bool _snapResizeToGrid;
+  bool _snapResizeToGrid;
   bool get snapResizeToGrid => _snapResizeToGrid;
   set snapResizeToGrid(newValue) => _snapResizeToGrid = newValue;
 
@@ -157,7 +176,8 @@ class InfiniteCanvasController extends ChangeNotifier implements Graph {
   Size get gridSize => _gridSize;
   set gridSize(Size value) {
     if (value == _gridSize) return;
-    _gridSize = enforceBoundsOnSize(value, minimumGridSize, maximumGridSize);
+    _gridSize =
+        enforceBoundsOnSize(value, min: minimumGridSize, max: maximumGridSize);
     notifyListeners();
   }
 
@@ -323,8 +343,8 @@ class InfiniteCanvasController extends ChangeNotifier implements Graph {
   void resizeGrid({double widthFactor = 2.0, double heightFactor = 2.0}) {
     gridSize = enforceBoundsOnSize(
         Size(_gridSize.width * widthFactor, _gridSize.height * heightFactor),
-        minimumGridSize,
-        maximumGridSize);
+        min: minimumGridSize,
+        max: maximumGridSize);
     notifyListeners();
   }
 
@@ -402,6 +422,18 @@ class InfiniteCanvasController extends ChangeNotifier implements Graph {
       final current = nodes[index];
       nodes.removeAt(index);
       nodes.insert(0, current);
+    }
+    notifyListeners();
+  }
+
+  void resizeToFitGrid() {
+    final selection = _selected.toList();
+    for (final key in selection) {
+      final index = nodes.indexWhere((e) => e.key == key);
+      if (index == -1) continue;
+      final current = nodes[index];
+      current.resizeToFitGrid(gridSize,
+          minimumNodeSize: minimumNodeSize, snapMode: SnapMode.closest);
     }
     notifyListeners();
   }
