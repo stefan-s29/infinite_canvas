@@ -21,10 +21,10 @@ class NodeRenderer extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final fonts = Theme.of(context).textTheme;
-    final showCornerHandles = node.resizeMode.containsCornerHandles &&
+    final showCornerHandles = node.resizeHandlesMode.containsCornerHandles &&
         controller.isSelected(node.key);
-    final showEdgeHandles =
-        node.resizeMode.containsEdgeHandles && controller.isSelected(node.key);
+    final showEdgeHandles = node.resizeHandlesMode.containsEdgeHandles &&
+        controller.isSelected(node.key);
     return SizedBox.fromSize(
       size: node.size,
       child: Stack(clipBehavior: Clip.none, children: [

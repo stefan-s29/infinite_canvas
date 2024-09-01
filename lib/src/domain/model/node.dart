@@ -10,7 +10,7 @@ class InfiniteCanvasNode<T> {
     required this.offset,
     required this.child,
     this.label,
-    this.resizeMode = ResizeMode.disabled,
+    this.resizeHandlesMode = ResizeHandlesMode.disabled,
     this.allowMove = true,
     this.clipBehavior = Clip.none,
     this.value,
@@ -31,7 +31,7 @@ class InfiniteCanvasNode<T> {
   String? label;
   T? value;
   final Widget child;
-  final ResizeMode resizeMode;
+  final ResizeHandlesMode resizeHandlesMode;
   bool currentlyResizing = false;
   final bool allowMove;
   final Clip clipBehavior;
@@ -68,7 +68,7 @@ class InfiniteCanvasNode<T> {
       }
     }
 
-    if (size != null && resizeMode.isEnabled) {
+    if (size != null && resizeHandlesMode.isEnabled) {
       if (size.width < dragHandleSize * 2) {
         size = Size(dragHandleSize * 2, size.height);
       }
@@ -87,16 +87,20 @@ class InfiniteCanvasNode<T> {
     }
   }
 
-  void alignWithGrid(Size gridSize) {
-    final snappedX =
-        _getClosestSnapPosition(offset.dx, size.width, gridSize.width);
-    final snappedY =
-        _getClosestSnapPosition(offset.dy, size.height, gridSize.height);
+  void alignWithGrid(Size gridSize,
+      {PositioningSnapMode snapMode = PositioningSnapMode.closest}) {
+    final snappedX = _getClosestSnapPosition(
+        offset.dx, size.width, gridSize.width,
+        snapMode: snapMode);
+    final snappedY = _getClosestSnapPosition(
+        offset.dy, size.height, gridSize.height,
+        snapMode: snapMode);
     this.offset = Offset(snappedX, snappedY);
   }
 
   void resizeToFitGrid(Size gridSize,
-      {Size? minimumNodeSize, SnapMode snapMode = SnapMode.closest}) {
+      {Size? minimumNodeSize,
+      ResizeSnapMode snapMode = ResizeSnapMode.closest}) {
     final currentBounds = offset & size;
 
     final minimumSize = _getMinimumSizeToFitGrid(gridSize, minimumNodeSize);
@@ -132,16 +136,17 @@ class InfiniteCanvasNode<T> {
     return Size(minWidth, minHeight);
   }
 
-  RoundingMode _getRoundingModeForSnapMode(SnapMode snapMode, bool leftOrTop) {
+  RoundingMode _getRoundingModeForSnapMode(
+      ResizeSnapMode snapMode, bool leftOrTop) {
     switch (snapMode) {
-      case SnapMode.closest:
+      case ResizeSnapMode.closest:
         return RoundingMode.closest;
-      case SnapMode.grow:
+      case ResizeSnapMode.grow:
         if (leftOrTop) {
           return RoundingMode.floor;
         }
         return RoundingMode.ceil;
-      case SnapMode.shrink:
+      case ResizeSnapMode.shrink:
         if (leftOrTop) {
           return RoundingMode.ceil;
         }
@@ -175,13 +180,21 @@ class InfiniteCanvasNode<T> {
   }
 
   double _getClosestSnapPosition(
-      double rawEdge, double nodeLength, double gridEdge) {
+      double rawEdge, double nodeLength, double gridEdge,
+      {PositioningSnapMode snapMode = PositioningSnapMode.closest}) {
     final snapAtStartPos = adjustEdgeToGrid(rawEdge, gridEdge);
-    final snapAtStartDelta = (snapAtStartPos - rawEdge).abs();
+    if (snapMode == PositioningSnapMode.start) {
+      return snapAtStartPos;
+    }
+
     final snapAtEndPos =
         adjustEdgeToGrid(rawEdge + nodeLength, gridEdge) - nodeLength;
-    final snapAtEndDelta = (snapAtEndPos - rawEdge).abs();
+    if (snapMode == PositioningSnapMode.end) {
+      return snapAtEndPos;
+    }
 
+    final snapAtStartDelta = (snapAtStartPos - rawEdge).abs();
+    final snapAtEndDelta = (snapAtEndPos - rawEdge).abs();
     if (snapAtEndDelta < snapAtStartDelta) {
       return snapAtEndPos;
     }
@@ -189,17 +202,21 @@ class InfiniteCanvasNode<T> {
   }
 }
 
-enum ResizeMode {
+enum ResizeHandlesMode {
   disabled,
   corners,
   edges,
   cornersAndEdges;
 
-  bool get isEnabled => this != ResizeMode.disabled;
+  bool get isEnabled => this != ResizeHandlesMode.disabled;
   bool get containsCornerHandles =>
-      this == ResizeMode.corners || this == ResizeMode.cornersAndEdges;
+      this == ResizeHandlesMode.corners ||
+      this == ResizeHandlesMode.cornersAndEdges;
   bool get containsEdgeHandles =>
-      this == ResizeMode.edges || this == ResizeMode.cornersAndEdges;
+      this == ResizeHandlesMode.edges ||
+      this == ResizeHandlesMode.cornersAndEdges;
 }
 
-enum SnapMode { closest, shrink, grow }
+enum PositioningSnapMode { closest, start, end }
+
+enum ResizeSnapMode { closest, shrink, grow }

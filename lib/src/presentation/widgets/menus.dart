@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:infinite_canvas/infinite_canvas.dart';
 
 import 'actions.dart';
 import '../state/controller.dart';
@@ -189,7 +190,8 @@ class _MenusState extends State<Menus> {
         ),
         MenuEntry(
           label: 'Align with grid',
-          onPressed: widget.controller.alignWithGrid,
+          onPressed: () => widget.controller
+              .alignWithGrid(snapMode: PositioningSnapMode.start),
           shortcut: const SingleActivator(LogicalKeyboardKey.keyF, meta: true),
         ),
         MenuEntry(
