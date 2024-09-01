@@ -15,8 +15,8 @@ class InfiniteCanvasController extends ChangeNotifier implements Graph {
   InfiniteCanvasController(
       {List<InfiniteCanvasNode> nodes = const [],
       List<InfiniteCanvasEdge> edges = const [],
-      minimumNodeSize = const Size(InfiniteCanvasNode.dragHandleSize * 2,
-          InfiniteCanvasNode.dragHandleSize * 2),
+      minimumNodeSize = const Size(32, 32),
+      this.dragHandleSize = const Size(10, 10),
       this.minimumGridSize = const Size(16.0, 16.0),
       this.maximumGridSize = const Size(128.0, 128.0),
       Size gridSize = const Size(32.0, 32.0),
@@ -45,6 +45,8 @@ class InfiniteCanvasController extends ChangeNotifier implements Graph {
   @override
   final List<InfiniteCanvasEdge> edges = [];
 
+  Size dragHandleSize;
+
   Size _minimumNodeSize;
   Size get minimumNodeSize => _minimumNodeSize;
   set minimumNodeSize(Size value) {
@@ -56,7 +58,7 @@ class InfiniteCanvasController extends ChangeNotifier implements Graph {
     if (value.width > oldMinimumNodeSize.width ||
         value.height > oldMinimumNodeSize.height) {
       for (final node in nodes) {
-        node.updateAfterChangedMinNodeSize(value);
+        node.update(minimumNodeSize: value);
       }
     }
   }

@@ -42,9 +42,12 @@ class InfiniteCanvas extends StatefulWidget {
 }
 
 class InfiniteCanvasState extends State<InfiniteCanvas> {
+  late Size _dragHandleSize;
+
   @override
   void initState() {
     super.initState();
+    _dragHandleSize = controller.dragHandleSize;
     controller.addListener(onUpdate);
     controller.focusNode.requestFocus();
   }
@@ -73,6 +76,11 @@ class InfiniteCanvasState extends State<InfiniteCanvas> {
 
   void onUpdate() {
     if (mounted) setState(() {});
+    if (controller.dragHandleSize != _dragHandleSize) {
+      setState(() {
+        _dragHandleSize = controller.dragHandleSize;
+      });
+    }
   }
 
   InfiniteCanvasController get controller => widget.controller;
@@ -309,6 +317,7 @@ class InfiniteCanvasState extends State<InfiniteCanvas> {
                                       child: NodeRenderer(
                                         node: e,
                                         controller: controller,
+                                        dragHandleSize: _dragHandleSize,
                                       ),
                                     ))
                                 .toList(),
