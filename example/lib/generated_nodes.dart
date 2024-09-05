@@ -62,10 +62,10 @@ class _GeneratedNodesState extends State<GeneratedNodes> {
       }
     }
     controller = InfiniteCanvasController(
+        canvasConfig: InfiniteCanvasController.defaultConfig
+            .copyWith(snapMovementToGrid: true, snapResizeToGrid: true),
         nodes: nodes,
-        edges: edges,
-        snapMovementToGrid: true,
-        snapResizeToGrid: true);
+        edges: edges);
   }
 
   @override

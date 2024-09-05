@@ -3,8 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:infinite_canvas/infinite_canvas.dart';
 
 import 'actions.dart';
-import '../state/controller.dart';
-import '../../domain/model/menu_entry.dart';
 
 /// A widget that displays a menu for the [InfiniteCanvas].
 class Menus extends StatefulWidget {
@@ -248,7 +246,7 @@ class _MenusState extends State<Menus> {
       menuChildren: [
         MenuEntry(
           label: 'Snap To Grid',
-          isActivated: () => widget.controller.snapMovementToGrid,
+          isActivated: () => widget.controller.canvasConfig.snapMovementToGrid,
           onPressed: widget.controller.toggleSnapToGrid,
           shortcut: const SingleActivator(LogicalKeyboardKey.keyG, meta: true),
         )

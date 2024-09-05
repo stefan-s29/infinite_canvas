@@ -112,9 +112,7 @@ class NodeRenderer extends StatelessWidget {
           controller: controller,
           node: node,
           alignment: dragHandleAlignment,
-          size: dragHandleSize,
-          gridSize: controller.gridSize,
-          snapToGrid: controller.snapResizeToGrid,
+          canvasConfig: controller.canvasConfig,
         ));
   }
 }
