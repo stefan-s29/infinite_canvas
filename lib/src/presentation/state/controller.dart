@@ -50,9 +50,11 @@ class InfiniteCanvasController extends ChangeNotifier implements Graph {
   }
 
   void setGridSize(Size newGridSize) {
-    if (newGridSize == canvasConfig.minimumNodeSize) return;
-    _setCanvasConfig(
-        canvasConfig.copyWith(gridSize: enforceBoundsOnSize(newGridSize)));
+    if (newGridSize == canvasConfig.gridSize) return;
+    _setCanvasConfig(canvasConfig.copyWith(
+        gridSize: enforceBoundsOnSize(newGridSize,
+            min: canvasConfig.minimumGridSize,
+            max: canvasConfig.maximumGridSize)));
   }
 
   void resizeGrid({double widthFactor = 2.0, double heightFactor = 2.0}) {
@@ -67,11 +69,13 @@ class InfiniteCanvasController extends ChangeNotifier implements Graph {
     if ((minimumSize == null || minimumSize == canvasConfig.minimumGridSize) &&
         (maximumSize == null || maximumSize == canvasConfig.maximumGridSize))
       return;
+    final newMinimumSize = minimumSize ?? canvasConfig.minimumGridSize;
+    final newMaximumSize = maximumSize ?? canvasConfig.maximumGridSize;
     _setCanvasConfig(canvasConfig.copyWith(
-        minimumGridSize: minimumSize ?? canvasConfig.minimumGridSize,
-        maximumGridSize: maximumSize ?? canvasConfig.maximumGridSize,
+        minimumGridSize: newMinimumSize,
+        maximumGridSize: newMaximumSize,
         gridSize: enforceBoundsOnSize(canvasConfig.gridSize,
-            min: minimumSize, max: maximumSize)));
+            min: newMinimumSize, max: newMaximumSize)));
   }
 
   void setDragHandleSize(Size newDragHandleSize) {
