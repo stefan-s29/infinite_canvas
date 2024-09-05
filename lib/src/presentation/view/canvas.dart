@@ -47,7 +47,7 @@ class InfiniteCanvasState extends State<InfiniteCanvas> {
   @override
   void initState() {
     super.initState();
-    _dragHandleSize = controller.dragHandleSize;
+    _dragHandleSize = controller.canvasConfig.dragHandleSize;
     controller.addListener(onUpdate);
     controller.focusNode.requestFocus();
   }
@@ -76,9 +76,9 @@ class InfiniteCanvasState extends State<InfiniteCanvas> {
 
   void onUpdate() {
     if (mounted) setState(() {});
-    if (controller.dragHandleSize != _dragHandleSize) {
+    if (controller.canvasConfig.dragHandleSize != _dragHandleSize) {
       setState(() {
-        _dragHandleSize = controller.dragHandleSize;
+        _dragHandleSize = controller.canvasConfig.dragHandleSize;
       });
     }
   }
@@ -118,8 +118,8 @@ class InfiniteCanvasState extends State<InfiniteCanvas> {
       return widget.backgroundBuilder!(context, viewport);
     }
     return GridBackgroundBuilder(
-      cellWidth: widget.controller.gridSize.width,
-      cellHeight: widget.controller.gridSize.height,
+      cellWidth: widget.controller.canvasConfig.gridSize.width,
+      cellHeight: widget.controller.canvasConfig.gridSize.height,
       viewport: viewport,
     );
   }

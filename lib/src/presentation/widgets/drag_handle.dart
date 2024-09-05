@@ -2,24 +2,21 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:infinite_canvas/infinite_canvas.dart';
+import 'package:infinite_canvas/src/domain/model/canvas_config.dart';
 import 'package:infinite_canvas/src/presentation/utils/helpers.dart';
 
 class DragHandle extends StatefulWidget {
   final InfiniteCanvasController controller;
   final InfiniteCanvasNode node;
   final DragHandleAlignment alignment;
-  final Size size;
-  final Size gridSize;
-  final bool snapToGrid;
+  final CanvasConfig canvasConfig;
 
   const DragHandle({
     super.key,
     required this.controller,
     required this.node,
     required this.alignment,
-    required this.size,
-    required this.gridSize,
-    this.snapToGrid = true,
+    required this.canvasConfig,
   });
 
   @override
@@ -51,16 +48,16 @@ class _DragHandleState extends State<DragHandle> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final al = widget.alignment;
-    final minimumNodeSize = controller.minimumNodeSize;
+    final canvasConfig = widget.canvasConfig;
     return Listener(
         onPointerDown: (details) {
           initialBounds = Rect.fromLTWH(node.offset.dx, node.offset.dy,
               node.size.width, node.size.height);
           minimumSizeBounds = Rect.fromLTRB(
-              initialBounds.right - minimumNodeSize.width,
-              initialBounds.bottom - minimumNodeSize.height,
-              initialBounds.left + minimumNodeSize.width,
-              initialBounds.top + minimumNodeSize.height);
+              initialBounds.right - canvasConfig.minimumNodeSize.width,
+              initialBounds.bottom - canvasConfig.minimumNodeSize.height,
+              initialBounds.left + canvasConfig.minimumNodeSize.width,
+              initialBounds.top + canvasConfig.minimumNodeSize.height);
           draggingOffset = Offset.zero;
         },
         onPointerUp: (details) {
@@ -90,12 +87,12 @@ class _DragHandleState extends State<DragHandle> {
                 newBounds.bottom);
           }
 
-          if (widget.snapToGrid && (al.isLeft || al.isTop)) {
+          if (canvasConfig.snapResizeToGrid && (al.isLeft || al.isTop)) {
             final snappedLeft = adjustEdgeToGrid(
-                newBounds.left, widget.gridSize.width,
+                newBounds.left, canvasConfig.gridSize.width,
                 maximum: minimumSizeBounds.left, allowMinAndMaxSizes: false);
             final snappedTop = adjustEdgeToGrid(
-                newBounds.top, widget.gridSize.height,
+                newBounds.top, canvasConfig.gridSize.height,
                 maximum: minimumSizeBounds.top, allowMinAndMaxSizes: false);
             newBounds = Rect.fromLTRB(
                 snappedLeft, snappedTop, newBounds.right, newBounds.bottom);
@@ -105,7 +102,8 @@ class _DragHandleState extends State<DragHandle> {
             newBounds = Rect.fromLTWH(
                 newBounds.left,
                 newBounds.top,
-                max(minimumNodeSize.width, newBounds.width + draggingOffset.dx),
+                max(canvasConfig.minimumNodeSize.width,
+                    newBounds.width + draggingOffset.dx),
                 newBounds.height);
           }
           if (al.isBottom) {
@@ -113,31 +111,31 @@ class _DragHandleState extends State<DragHandle> {
                 newBounds.left,
                 newBounds.top,
                 newBounds.width,
-                max(minimumNodeSize.height,
+                max(canvasConfig.minimumNodeSize.height,
                     newBounds.height + draggingOffset.dy));
           }
 
-          if (widget.snapToGrid && (al.isRight || al.isBottom)) {
+          if (canvasConfig.snapResizeToGrid && (al.isRight || al.isBottom)) {
             final snappedRight = adjustEdgeToGrid(
-                newBounds.right, widget.gridSize.width,
+                newBounds.right, canvasConfig.gridSize.width,
                 minimum: minimumSizeBounds.right);
             final snappedBottom = adjustEdgeToGrid(
-                newBounds.bottom, widget.gridSize.height,
+                newBounds.bottom, canvasConfig.gridSize.height,
                 minimum: minimumSizeBounds.bottom);
             newBounds = Rect.fromLTRB(
                 newBounds.left, newBounds.top, snappedRight, snappedBottom);
           }
 
           node.update(
-              minimumNodeSize: minimumNodeSize,
+              minimumNodeSize: canvasConfig.minimumNodeSize,
               size: newBounds.size,
               offset: newBounds.topLeft,
               setCurrentlyResizing: true);
           controller.edit(node);
         },
         child: Container(
-          width: widget.size.width,
-          height: widget.size.height,
+          width: canvasConfig.dragHandleSize.width,
+          height: canvasConfig.dragHandleSize.height,
           decoration: BoxDecoration(
             color: colors.surfaceContainerHighest,
             border: Border.all(
