@@ -13,6 +13,7 @@ class CanvasConfig with _$CanvasConfig {
     required Size maximumGridSize,
     required Size dragHandleSize,
     required Size minimumNodeSize,
+    required Size maximumNodeSize,
     required bool snapMovementToGrid,
     required bool snapResizeToGrid,
   }) = _CanvasConfig;
