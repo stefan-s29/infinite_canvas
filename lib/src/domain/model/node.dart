@@ -1,33 +1,57 @@
 import 'package:flutter/material.dart';
 import 'package:infinite_canvas/src/presentation/utils/helpers.dart';
 
+import 'canvas_config.dart';
+import 'node_rect.dart';
+
 /// A node in the [InfiniteCanvas].
 class InfiniteCanvasNode<T> {
   InfiniteCanvasNode({
     required this.key,
-    Size? minimumNodeSize,
-    required Size size,
-    required this.offset,
+    required CanvasConfig canvasConfig,
+    required NodeRect nodeRect,
     required this.child,
     this.label,
     this.resizeHandlesMode = ResizeHandlesMode.disabled,
     this.allowMove = true,
     this.clipBehavior = Clip.none,
     this.value,
-  }) {
-    setSize(size, minimumNodeSize);
-  }
+  })  : _canvasConfig = canvasConfig,
+        _nodeRect = nodeRect.adjustToBounds(
+            canvasConfig.minimumNodeSize, canvasConfig.minimumNodeSize);
 
   String get id => key.toString();
 
   final LocalKey key;
-  late Size _size;
-  Size get size => _size;
-  void setSize(Size value, Size? minimumNodeSize) {
-    _size = enforceBoundsOnSize(value, min: minimumNodeSize);
+
+  CanvasConfig _canvasConfig;
+  CanvasConfig get canvasConfig => _canvasConfig;
+  set canvasConfig(CanvasConfig newConfig) {
+    CanvasConfig oldConfig = _canvasConfig;
+    _canvasConfig = newConfig;
+
+    if ((newConfig.minimumNodeSize != oldConfig.minimumNodeSize ||
+        newConfig.maximumNodeSize != oldConfig.maximumNodeSize)) {
+      _setSize(size, enforceBounds: true);
+    }
   }
 
-  late Offset offset;
+  NodeRect _nodeRect;
+  Size get size => _nodeRect.size;
+  void _setSize(Size givenSize, {bool enforceBounds = false}) {
+    final resizedNodeRect =
+        NodeRect.fromOffsetAndSize(_nodeRect.offset, givenSize);
+    _nodeRect = enforceBounds
+        ? resizedNodeRect.adjustToBounds(
+            canvasConfig.minimumNodeSize, canvasConfig.maximumNodeSize)
+        : resizedNodeRect;
+  }
+
+  Offset get offset => _nodeRect.offset;
+  set offset(value) {
+    _nodeRect.offset = value;
+  }
+
   String? label;
   T? value;
   final Widget child;
@@ -35,85 +59,48 @@ class InfiniteCanvasNode<T> {
   bool currentlyResizing = false;
   final bool allowMove;
   final Clip clipBehavior;
-  Rect get rect => offset & _size;
+  Rect get rect => _nodeRect.toRect();
   static const double borderInset = 2;
 
   void update(
-      {Size? size,
-      Offset? offset,
-      String? label,
-      bool? setCurrentlyResizing,
-      bool? snapMovementToGrid,
-      Size? gridSize,
-      Size? minimumNodeSize}) {
+      {Size? size, Offset? offset, String? label, bool? setCurrentlyResizing}) {
     if (setCurrentlyResizing != null) {
       currentlyResizing = setCurrentlyResizing;
     }
+    final canBeMoved =
+        setCurrentlyResizing == null && allowMove && !currentlyResizing;
 
     if (offset != null && setCurrentlyResizing == true) {
       this.offset = offset;
-    } else if (offset != null &&
-        setCurrentlyResizing == null &&
-        allowMove &&
-        !currentlyResizing) {
-      if (snapMovementToGrid == true && gridSize != null) {
-        final snappedX = _getClosestSnapPosition(
-            offset.dx, size?.width ?? this.size.width, gridSize.width);
-        final snappedY = _getClosestSnapPosition(
-            offset.dy, size?.height ?? this.size.height, gridSize.height);
-        this.offset = Offset(snappedX, snappedY);
+    } else if (offset != null && canBeMoved) {
+      if (canvasConfig.snapMovementToGrid) {
+        final nodeRect = NodeRect.fromOffsetAndSize(offset, size ?? this.size);
+        this.offset = nodeRect.getClosestSnapPosition(canvasConfig.gridSize);
       } else {
         this.offset = offset;
       }
     }
 
     if (size != null && resizeHandlesMode.isEnabled) {
-      setSize(size, minimumNodeSize);
+      _setSize(size, enforceBounds: true);
     }
     if (label != null) this.label = label;
-
-    if (minimumNodeSize != null &&
-        (_size.width < minimumNodeSize.width ||
-            _size.height < minimumNodeSize.height)) {
-      setSize(_size, minimumNodeSize);
-    }
   }
 
   void alignWithGrid(Size gridSize,
       {PositioningSnapMode snapMode = PositioningSnapMode.closest}) {
-    final snappedX = _getClosestSnapPosition(
-        offset.dx, size.width, gridSize.width,
-        snapMode: snapMode);
-    final snappedY = _getClosestSnapPosition(
-        offset.dy, size.height, gridSize.height,
-        snapMode: snapMode);
-    this.offset = Offset(snappedX, snappedY);
+    final nodeBounds = NodeRect.fromOffsetAndSize(offset, size);
+    this.offset = nodeBounds.getClosestSnapPosition(canvasConfig.gridSize);
   }
 
   void resizeToFitGrid(Size gridSize,
       {Size? minimumNodeSize,
       ResizeSnapMode snapMode = ResizeSnapMode.closest}) {
-    final currentBounds = offset & size;
-
-    final minimumSize = _getMinimumSizeToFitGrid(gridSize, minimumNodeSize);
-    final leftOrTopRoundingMode = _getRoundingModeForSnapMode(snapMode, true);
-    final rightOrBottomRoundingMode =
-        _getRoundingModeForSnapMode(snapMode, false);
-
-    Rect newBounds = Rect.fromLTRB(
-        adjustEdgeToGrid(currentBounds.left, gridSize.width,
-            roundingMode: leftOrTopRoundingMode),
-        adjustEdgeToGrid(currentBounds.top, gridSize.height,
-            roundingMode: leftOrTopRoundingMode),
-        adjustEdgeToGrid(currentBounds.right, gridSize.width,
-            roundingMode: rightOrBottomRoundingMode),
-        adjustEdgeToGrid(currentBounds.bottom, gridSize.height,
-            roundingMode: rightOrBottomRoundingMode));
-    newBounds = extendBoundsGridWiseToRiseAboveMinimum(
-        newBounds, currentBounds, minimumSize, gridSize);
+    final currentRect = NodeRect.fromOffsetAndSize(offset, size);
+    final newBounds = currentRect.getNewBoundsResizedToGrid(gridSize);
 
     offset = newBounds.topLeft;
-    setSize(newBounds.size, minimumSize);
+    setSize(newBounds.size, minSize: minimumSize);
   }
 
   Size _getMinimumSizeToFitGrid(Size gridSize, Size? minimumSize) {
@@ -145,53 +132,6 @@ class InfiniteCanvasNode<T> {
         return RoundingMode.floor;
     }
   }
-
-  Rect extendBoundsGridWiseToRiseAboveMinimum(
-      Rect newBounds, Rect currentBounds, Size minimumSize, Size gridSize) {
-    while (newBounds.width < minimumSize.width) {
-      if ((newBounds.left - currentBounds.left).abs() <=
-          (newBounds.right - currentBounds.right).abs()) {
-        newBounds = Rect.fromLTRB(newBounds.left, newBounds.top,
-            newBounds.right + gridSize.width, newBounds.bottom);
-      } else {
-        newBounds = Rect.fromLTRB(newBounds.left - gridSize.width,
-            newBounds.top, newBounds.right, newBounds.bottom);
-      }
-    }
-    while (newBounds.height < minimumSize.height) {
-      if ((newBounds.top - currentBounds.top).abs() <=
-          (newBounds.bottom - currentBounds.bottom).abs()) {
-        newBounds = Rect.fromLTRB(newBounds.left, newBounds.top,
-            newBounds.right, newBounds.bottom + gridSize.height);
-      } else {
-        newBounds = Rect.fromLTRB(newBounds.left,
-            newBounds.top - gridSize.height, newBounds.right, newBounds.bottom);
-      }
-    }
-    return newBounds;
-  }
-
-  double _getClosestSnapPosition(
-      double rawEdge, double nodeLength, double gridEdge,
-      {PositioningSnapMode snapMode = PositioningSnapMode.closest}) {
-    final snapAtStartPos = adjustEdgeToGrid(rawEdge, gridEdge);
-    if (snapMode == PositioningSnapMode.start) {
-      return snapAtStartPos;
-    }
-
-    final snapAtEndPos =
-        adjustEdgeToGrid(rawEdge + nodeLength, gridEdge) - nodeLength;
-    if (snapMode == PositioningSnapMode.end) {
-      return snapAtEndPos;
-    }
-
-    final snapAtStartDelta = (snapAtStartPos - rawEdge).abs();
-    final snapAtEndDelta = (snapAtEndPos - rawEdge).abs();
-    if (snapAtEndDelta < snapAtStartDelta) {
-      return snapAtEndPos;
-    }
-    return snapAtStartPos;
-  }
 }
 
 enum ResizeHandlesMode {
@@ -208,7 +148,3 @@ enum ResizeHandlesMode {
       this == ResizeHandlesMode.edges ||
       this == ResizeHandlesMode.cornersAndEdges;
 }
-
-enum PositioningSnapMode { closest, start, end }
-
-enum ResizeSnapMode { closest, shrink, grow }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:infinite_canvas/infinite_canvas.dart';
 
+import '../../domain/model/node_rect.dart';
 import 'actions.dart';
 
 /// A widget that displays a menu for the [InfiniteCanvas].
