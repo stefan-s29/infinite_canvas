@@ -1,5 +1,7 @@
 import 'dart:ui';
 
+import 'package:infinite_canvas/src/domain/model/node_rect.dart';
+
 enum RoundingMode { closest, floor, ceil }
 
 double adjustEdgeToGrid(double rawValue, double gridEdge,
@@ -32,13 +34,31 @@ double adjustEdgeToGrid(double rawValue, double gridEdge,
   return snapped;
 }
 
+bool exceedsLimit(Size checkedSize, {Size? minimum, Size? maximum}) {
+  if (minimum != null &&
+      (checkedSize.width < minimum.width ||
+          checkedSize.height < minimum.height)) return true;
+  if (maximum != null &&
+      (checkedSize.width > maximum.width ||
+          checkedSize.height > maximum.height)) return true;
+  return false;
+}
+
 double enforceBounds(double value, double? min, double? max) {
   if (max != null && value > max) return max;
   if (min != null && value < min) return min;
   return value;
 }
 
-Size enforceBoundsOnSize(Size value, {Size? min, Size? max}) {
-  return Size(enforceBounds(value.width, min?.width, max?.width),
-      enforceBounds(value.height, min?.height, max?.height));
+extension SizeWithinBounds on Size {
+  bool isWithinBounds({Size? min, Size? max}) {
+    return (min == null || (width >= min.width && height >= min.height)) &&
+        (max == null || (width <= max.width && height <= max.height));
+  }
+
+  Size adjustToBounds({Size? min, Size? max}) {
+    final newWidth = enforceBounds(width, min?.width, max?.width);
+    final newHeight = enforceBounds(height, min?.height, max?.height);
+    return Size(newWidth, newHeight);
+  }
 }
