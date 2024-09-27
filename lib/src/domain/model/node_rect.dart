@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:infinite_canvas/src/presentation/utils/helpers.dart';
+import 'package:infinite_canvas/src/presentation/utils/resize_helper.dart';
 
 /// A representation of the offset and size of a node;
 /// in contrast to the Rect class, the 4 main attributes are changeable here
@@ -41,6 +42,11 @@ class NodeRect {
     right = left + size.width;
     bottom = top + size.height;
   }
+
+  Offset get topLeft => Offset(left, top);
+  Offset get topRight => Offset(right, top);
+  Offset get bottomLeft => Offset(left, bottom);
+  Offset get bottomRight => Offset(right, bottom);
 
   Rect toRect() {
     return Rect.fromLTRB(left, top, right, bottom);
@@ -84,23 +90,11 @@ class NodeRect {
     return snapAtEndDelta < snapAtStartDelta ? snapAtEndPos : snapAtStartPos;
   }
 
-  NodeRect getNewBoundsResizedToGrid(Size gridSize) {
-    final minimumSize = _getMinimumSizeToFitGrid(gridSize, minimumNodeSize);
-    final leftOrTopRoundingMode = _getRoundingModeForSnapMode(snapMode, true);
-    final rightOrBottomRoundingMode =
-        _getRoundingModeForSnapMode(snapMode, false);
-
-    NodeRect newBounds = NodeRect.fromLTRB(
-        adjustEdgeToGrid(left, gridSize.width,
-            roundingMode: leftOrTopRoundingMode),
-        adjustEdgeToGrid(top, gridSize.height,
-            roundingMode: leftOrTopRoundingMode),
-        adjustEdgeToGrid(right, gridSize.width,
-            roundingMode: rightOrBottomRoundingMode),
-        adjustEdgeToGrid(bottom, gridSize.height,
-            roundingMode: rightOrBottomRoundingMode));
-    newBounds = extendBoundsGridWiseToRiseAboveMinimum(
-        newBounds, currentBounds, minimumSize, gridSize);
+  NodeRect getRectResizedToGrid(Size gridSize, Size minimumNodeSize,
+      Size maximumNodeSize, ResizeSnapMode snapMode) {
+    final resizeHelper =
+        ResizeHelper(gridSize, minimumNodeSize, maximumNodeSize, snapMode);
+    return resizeHelper.getRectResizedToGrid(this);
   }
 
   bool isLeftBoundCloserThanRight(NodeRect otherBounds) {
@@ -109,52 +103,6 @@ class NodeRect {
 
   bool isTopBoundCloserThanBottom(NodeRect otherBounds) {
     return (otherBounds.top - top).abs() <= (otherBounds.bottom - bottom).abs();
-  }
-
-  /// Returns new bounds that fulfill the given minimum size
-  /// by extending the current bounds in steps of gridSize
-  /// on the side where the bound is closer to the original one
-  NodeRect getNewBoundsWithMinimumSizeOnGrid(
-      NodeRect originalBounds, Size minimumSize, Size gridSize) {
-    NodeRect newBounds = copyWith();
-    while (width < minimumSize.width) {
-      if (isLeftBoundCloserThanRight(originalBounds)) {
-        newBounds.right += gridSize.width;
-      } else {
-        newBounds.left -= gridSize.width;
-      }
-    }
-    while (height < minimumSize.height) {
-      if (isTopBoundCloserThanBottom(originalBounds)) {
-        newBounds.bottom += gridSize.height;
-      } else {
-        newBounds.top -= gridSize.height;
-      }
-    }
-    return newBounds;
-  }
-
-  /// Returns new bounds that fulfill the given maximum size
-  /// by shrinking the current bounds in steps of gridSize
-  /// on the side where the bound is closer to the original one
-  NodeRect getNewBoundsWithMaximumSizeOnGrid(
-      NodeRect originalBounds, Size maximumSize, Size gridSize) {
-    NodeRect newBounds = copyWith();
-    while (width > maximumSize.width) {
-      if (isLeftBoundCloserThanRight(originalBounds)) {
-        newBounds.right -= gridSize.width;
-      } else {
-        newBounds.left += gridSize.width;
-      }
-    }
-    while (height > maximumSize.height) {
-      if (isTopBoundCloserThanBottom(originalBounds)) {
-        newBounds.bottom -= gridSize.height;
-      } else {
-        newBounds.top += gridSize.height;
-      }
-    }
-    return newBounds;
   }
 }
 

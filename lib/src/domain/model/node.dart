@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:infinite_canvas/src/presentation/utils/helpers.dart';
 
 import 'canvas_config.dart';
 import 'node_rect.dart';
@@ -9,7 +8,8 @@ class InfiniteCanvasNode<T> {
   InfiniteCanvasNode({
     required this.key,
     required CanvasConfig canvasConfig,
-    required NodeRect nodeRect,
+    required Offset offset,
+    required Size size,
     required this.child,
     this.label,
     this.resizeHandlesMode = ResizeHandlesMode.disabled,
@@ -17,8 +17,8 @@ class InfiniteCanvasNode<T> {
     this.clipBehavior = Clip.none,
     this.value,
   })  : _canvasConfig = canvasConfig,
-        _nodeRect = nodeRect.adjustToBounds(
-            canvasConfig.minimumNodeSize, canvasConfig.minimumNodeSize);
+        _nodeRect = NodeRect.fromOffsetAndSize(offset, size).adjustToBounds(
+            canvasConfig.minimumNodeSize, canvasConfig.maximumNodeSize);
 
   String get id => key.toString();
 
@@ -32,19 +32,22 @@ class InfiniteCanvasNode<T> {
 
     if ((newConfig.minimumNodeSize != oldConfig.minimumNodeSize ||
         newConfig.maximumNodeSize != oldConfig.maximumNodeSize)) {
-      _setSize(size, enforceBounds: true);
+      _setSize(size);
     }
   }
 
   NodeRect _nodeRect;
+  set nodeRect(NodeRect newRect) {
+    offset = newRect.topLeft;
+    _setSize(newRect.size);
+  }
+
   Size get size => _nodeRect.size;
-  void _setSize(Size givenSize, {bool enforceBounds = false}) {
+  void _setSize(Size givenSize) {
     final resizedNodeRect =
         NodeRect.fromOffsetAndSize(_nodeRect.offset, givenSize);
-    _nodeRect = enforceBounds
-        ? resizedNodeRect.adjustToBounds(
-            canvasConfig.minimumNodeSize, canvasConfig.maximumNodeSize)
-        : resizedNodeRect;
+    _nodeRect = resizedNodeRect.adjustToBounds(
+        canvasConfig.minimumNodeSize, canvasConfig.maximumNodeSize);
   }
 
   Offset get offset => _nodeRect.offset;
@@ -82,55 +85,21 @@ class InfiniteCanvasNode<T> {
     }
 
     if (size != null && resizeHandlesMode.isEnabled) {
-      _setSize(size, enforceBounds: true);
+      _setSize(size);
     }
     if (label != null) this.label = label;
   }
 
-  void alignWithGrid(Size gridSize,
+  void alignWithGrid(
       {PositioningSnapMode snapMode = PositioningSnapMode.closest}) {
-    final nodeBounds = NodeRect.fromOffsetAndSize(offset, size);
-    this.offset = nodeBounds.getClosestSnapPosition(canvasConfig.gridSize);
-  }
-
-  void resizeToFitGrid(Size gridSize,
-      {Size? minimumNodeSize,
-      ResizeSnapMode snapMode = ResizeSnapMode.closest}) {
     final currentRect = NodeRect.fromOffsetAndSize(offset, size);
-    final newBounds = currentRect.getNewBoundsResizedToGrid(gridSize);
-
-    offset = newBounds.topLeft;
-    setSize(newBounds.size, minSize: minimumSize);
+    this.offset = currentRect.getClosestSnapPosition(canvasConfig.gridSize);
   }
 
-  Size _getMinimumSizeToFitGrid(Size gridSize, Size? minimumSize) {
-    final minWidth =
-        (minimumSize == null || minimumSize.width <= gridSize.width)
-            ? gridSize.width
-            : gridSize.width * 2;
-    final minHeight =
-        (minimumSize == null || minimumSize.height <= gridSize.height)
-            ? gridSize.height
-            : gridSize.height * 2;
-    return Size(minWidth, minHeight);
-  }
-
-  RoundingMode _getRoundingModeForSnapMode(
-      ResizeSnapMode snapMode, bool leftOrTop) {
-    switch (snapMode) {
-      case ResizeSnapMode.closest:
-        return RoundingMode.closest;
-      case ResizeSnapMode.grow:
-        if (leftOrTop) {
-          return RoundingMode.floor;
-        }
-        return RoundingMode.ceil;
-      case ResizeSnapMode.shrink:
-        if (leftOrTop) {
-          return RoundingMode.ceil;
-        }
-        return RoundingMode.floor;
-    }
+  void resizeToFitGrid({ResizeSnapMode snapMode = ResizeSnapMode.closest}) {
+    final resizedRect = _nodeRect.getRectResizedToGrid(canvasConfig.gridSize,
+        canvasConfig.minimumNodeSize, canvasConfig.maximumNodeSize, snapMode);
+    nodeRect = resizedRect;
   }
 }
 

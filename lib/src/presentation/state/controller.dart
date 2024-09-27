@@ -14,19 +14,8 @@ typedef NodeFormatter = void Function(InfiniteCanvasNode);
 
 /// A controller for the [InfiniteCanvas].
 class InfiniteCanvasController extends ChangeNotifier implements Graph {
-  static const CanvasConfig defaultConfig = CanvasConfig(
-    gridSize: Size(32.0, 32.0),
-    minimumGridSize: Size(16.0, 16.0),
-    maximumGridSize: Size(128.0, 128.0),
-    dragHandleSize: Size(10, 10),
-    minimumNodeSize: Size(32, 32),
-    maximumNodeSize: Size(256, 256),
-    snapMovementToGrid: false,
-    snapResizeToGrid: false,
-  );
-
   InfiniteCanvasController({
-    CanvasConfig canvasConfig = defaultConfig,
+    CanvasConfig canvasConfig = CanvasConfig.defaultConfig,
     List<InfiniteCanvasNode> nodes = const [],
     List<InfiniteCanvasEdge> edges = const [],
   })  : _canvasConfig = canvasConfig,
@@ -462,7 +451,7 @@ class InfiniteCanvasController extends ChangeNotifier implements Graph {
       final index = nodes.indexWhere((e) => e.key == key);
       if (index == -1) continue;
       final current = nodes[index];
-      current.alignWithGrid(canvasConfig.gridSize, snapMode: snapMode);
+      current.alignWithGrid(snapMode: snapMode);
     }
     notifyListeners();
   }
@@ -473,9 +462,7 @@ class InfiniteCanvasController extends ChangeNotifier implements Graph {
       final index = nodes.indexWhere((e) => e.key == key);
       if (index == -1) continue;
       final current = nodes[index];
-      current.resizeToFitGrid(canvasConfig.gridSize,
-          minimumNodeSize: canvasConfig.minimumNodeSize,
-          snapMode: ResizeSnapMode.closest);
+      current.resizeToFitGrid(snapMode: ResizeSnapMode.closest);
     }
     notifyListeners();
   }
