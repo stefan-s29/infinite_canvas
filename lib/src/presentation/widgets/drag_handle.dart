@@ -127,7 +127,6 @@ class _DragHandleState extends State<DragHandle> {
           }
 
           node.update(
-              minimumNodeSize: canvasConfig.minimumNodeSize,
               size: newBounds.size,
               offset: newBounds.topLeft,
               setCurrentlyResizing: true);

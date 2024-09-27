@@ -5,7 +5,9 @@ import 'package:infinite_canvas/infinite_canvas.dart';
 import 'package:random_color/random_color.dart';
 
 class GeneratedNodes extends StatefulWidget {
-  const GeneratedNodes({super.key});
+  const GeneratedNodes({super.key, this.initialCanvasConfig});
+
+  final CanvasConfig? initialCanvasConfig;
 
   @override
   State<GeneratedNodes> createState() => _GeneratedNodesState();
@@ -17,6 +19,11 @@ class _GeneratedNodesState extends State<GeneratedNodes> {
   @override
   void initState() {
     super.initState();
+
+    // Create default Canvas configuration if it is not given
+    final canvasConfig =
+        widget.initialCanvasConfig ?? CanvasConfig.defaultConfig;
+
     // Generate random nodes
     final colors = RandomColor();
     final nodes = List.generate(100, (index) {
@@ -24,6 +31,7 @@ class _GeneratedNodesState extends State<GeneratedNodes> {
       final size = Random().nextDouble() * 200 + 100;
       return InfiniteCanvasNode(
         key: UniqueKey(),
+        canvasConfig: canvasConfig,
         label: 'Node $index',
         resizeHandlesMode: ResizeHandlesMode.cornersAndEdges,
         offset: Offset(
@@ -62,10 +70,7 @@ class _GeneratedNodesState extends State<GeneratedNodes> {
       }
     }
     controller = InfiniteCanvasController(
-        canvasConfig: InfiniteCanvasController.defaultConfig
-            .copyWith(snapMovementToGrid: true, snapResizeToGrid: true),
-        nodes: nodes,
-        edges: edges);
+        canvasConfig: canvasConfig, nodes: nodes, edges: edges);
   }
 
   @override
@@ -90,6 +95,7 @@ class _GeneratedNodesState extends State<GeneratedNodes> {
                   final node = InfiniteCanvasNode(
                     key: UniqueKey(),
                     label: 'Node ${controller.nodes.length}',
+                    canvasConfig: controller.canvasConfig,
                     resizeHandlesMode: ResizeHandlesMode.cornersAndEdges,
                     offset: controller.mousePosition,
                     size: Size(
@@ -122,6 +128,7 @@ class _GeneratedNodesState extends State<GeneratedNodes> {
                   final node = InfiniteCanvasNode(
                     key: UniqueKey(),
                     label: 'Node ${controller.nodes.length}',
+                    canvasConfig: controller.canvasConfig,
                     resizeHandlesMode: ResizeHandlesMode.cornersAndEdges,
                     offset: controller.mousePosition,
                     size: Size(
@@ -157,6 +164,7 @@ class _GeneratedNodesState extends State<GeneratedNodes> {
                   final node = InfiniteCanvasNode(
                     key: UniqueKey(),
                     label: 'Node ${controller.nodes.length}',
+                    canvasConfig: controller.canvasConfig,
                     resizeHandlesMode: ResizeHandlesMode.cornersAndEdges,
                     offset: controller.mousePosition,
                     size: Size(

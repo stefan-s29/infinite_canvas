@@ -1,7 +1,5 @@
 import 'dart:ui';
 
-import 'package:infinite_canvas/src/domain/model/node_rect.dart';
-
 enum RoundingMode { closest, floor, ceil }
 
 double adjustEdgeToGrid(double rawValue, double gridEdge,
