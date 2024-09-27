@@ -31,10 +31,15 @@ class NodeRect {
 
   double get width => right - left;
   double get height => bottom - top;
+
   Offset get offset => Offset(left, top);
-  set offset(Offset offset) {
-    left = offset.dx;
-    top = offset.dy;
+  set offset(Offset newOffset) {
+    final oldWidth = width;
+    final oldHeight = height;
+    left = newOffset.dx;
+    top = newOffset.dy;
+    right = newOffset.dx + oldWidth;
+    bottom = newOffset.dy + oldHeight;
   }
 
   Size get size => Size(width, height);
