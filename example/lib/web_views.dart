@@ -26,6 +26,7 @@ class _WebViewsState extends State<WebViews> {
     final LocalKey webKey = UniqueKey();
     return InfiniteCanvasNode(
       key: key,
+      canvasConfig: controller.canvasConfig,
       size: const Size(800, 800),
       offset: Offset.zero,
       child: Column(

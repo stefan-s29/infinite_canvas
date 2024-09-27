@@ -17,6 +17,7 @@ class _WidgetsState extends State<Widgets> {
     controller = InfiniteCanvasController(nodes: [
       InfiniteCanvasNode(
         key: UniqueKey(),
+        canvasConfig: controller.canvasConfig,
         size: const Size(500, 800),
         offset: Offset.zero,
         child: const CounterExample(),
@@ -24,6 +25,7 @@ class _WidgetsState extends State<Widgets> {
       ),
       InfiniteCanvasNode(
         key: UniqueKey(),
+        canvasConfig: controller.canvasConfig,
         size: const Size(500, 800),
         offset: const Offset(550, 200),
         child: const DraggableExample(),

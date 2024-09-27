@@ -17,6 +17,7 @@ class _LevelOfDetailState extends State<LevelOfDetail> {
     controller = InfiniteCanvasController();
     controller.add(InfiniteCanvasNode(
       key: UniqueKey(),
+      canvasConfig: controller.canvasConfig,
       size: const Size(400, 800),
       offset: Offset.zero,
       child: Builder(
