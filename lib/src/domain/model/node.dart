@@ -37,6 +37,7 @@ class InfiniteCanvasNode<T> {
   }
 
   NodeRect _nodeRect;
+  NodeRect get nodeRect => _nodeRect;
   set nodeRect(NodeRect newRect) {
     offset = newRect.topLeft;
     _setSize(newRect.size);

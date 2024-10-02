@@ -63,9 +63,15 @@ class NodeRect {
         right ?? this.right, bottom ?? this.bottom);
   }
 
-  NodeRect adjustToBounds(Size min, Size max) {
+  NodeRect adjustToBounds(Size min, Size max,
+      {bool moveLeftEdge = false, bool moveTopEdge = false}) {
     final adjustedSize = size.adjustToBounds(min: min, max: max);
-    return NodeRect.fromOffsetAndSize(offset, adjustedSize);
+    return copyWith(
+      left: moveLeftEdge ? right - adjustedSize.width : null,
+      top: moveTopEdge ? bottom - adjustedSize.width : null,
+      right: !moveLeftEdge ? left + adjustedSize.width : null,
+      bottom: !moveTopEdge ? top + adjustedSize.width : null,
+    );
   }
 
   Offset getClosestSnapPosition(Size gridSize) {

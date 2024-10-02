@@ -2,6 +2,8 @@ import 'dart:ui';
 
 enum RoundingMode { closest, floor, ceil }
 
+/// allowMinAndMaxSizes: Allow the node to reach the min/max size
+/// even if they are not on the grid?
 double adjustEdgeToGrid(double rawValue, double gridEdge,
     {double? minimum,
     double? maximum,

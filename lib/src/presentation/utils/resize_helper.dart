@@ -1,29 +1,33 @@
 import 'dart:ui';
 
 import 'package:infinite_canvas/src/domain/model/node_rect.dart';
+import 'package:infinite_canvas/src/presentation/widgets/drag_handle.dart';
 
 import 'helpers.dart';
 
+/// Class to handle resizing of nodes while snapping to the grid
+/// and respecting the min/max node size
 class ResizeHelper {
   ResizeHelper(
-      this.gridSize, this.minimumNodeSize, this.maximumNodeSize, this.snapMode)
+      this.gridSize, Size minimumNodeSize, Size maximumNodeSize, this.snapMode,
+      {this.changeableEdges})
       : minimumSizeOnGrid = _getMinimumSizeOnGrid(gridSize, minimumNodeSize),
         maximumSizeOnGrid = _getMaximumSizeOnGrid(gridSize, maximumNodeSize);
 
   final Size gridSize;
-  final Size? minimumNodeSize;
-  final Size? maximumNodeSize;
-  final ResizeSnapMode snapMode;
-
   final Size minimumSizeOnGrid;
   final Size? maximumSizeOnGrid;
+
+  /// If changeableEdges is null, all 4 edges can be moved equally
+  final DragHandleAlignment? changeableEdges;
+  final ResizeSnapMode snapMode;
 
   /// Returns a new NodeRect object for the given NodeRect object
   /// that is resized to align with the grid, respecting the minimum
   /// and maximum node size
   NodeRect getRectResizedToGrid(NodeRect originalRect) {
     NodeRect resizedRect = _getRectResizedToGridIgnoringBounds(originalRect);
-    return _fitResizedRectWithinBounds(resizedRect, originalRect);
+    return _getNewRectWithinBoundsOnGrid(resizedRect, originalRect);
   }
 
   NodeRect _getRectResizedToGridIgnoringBounds(NodeRect originalRect) {
@@ -41,6 +45,13 @@ class ResizeHelper {
     final newBottom = adjustEdgeToGrid(originalRect.bottom, gridSize.height,
         roundingMode: rightAndBottomRoundingMode);
 
+    if (changeableEdges != null) {
+      return originalRect.copyWith(
+          left: changeableEdges!.isLeft ? newLeft : null,
+          top: changeableEdges!.isTop ? newTop : null,
+          right: changeableEdges!.isRight ? newRight : null,
+          bottom: changeableEdges!.isBottom ? newBottom : null);
+    }
     return NodeRect.fromLTRB(newLeft, newTop, newRight, newBottom);
   }
 
@@ -56,60 +67,34 @@ class ResizeHelper {
     }
   }
 
-  NodeRect _fitResizedRectWithinBounds(
-      NodeRect resizedRect, NodeRect originalRect) {
-    NodeRect newRect =
-        _getNewBoundsWithMinimumSizeOnGrid(resizedRect, originalRect);
-    if (maximumSizeOnGrid != null) {
-      newRect = _getNewBoundsWithMaximumSizeOnGrid(newRect, originalRect);
-    }
-    return newRect;
-  }
-
-  /// Extends the resized rect in steps of gridSize if it is too small,
-  /// starting on the side where the rect is closer to the original one
-  NodeRect _getNewBoundsWithMinimumSizeOnGrid(
+  NodeRect _getNewRectWithinBoundsOnGrid(
       NodeRect rectOnGrid, NodeRect originalRect) {
-    NodeRect newRect = rectOnGrid.copyWith();
-    while (newRect.width < minimumSizeOnGrid.width) {
-      if (newRect.isLeftBoundCloserThanRight(originalRect)) {
-        newRect.right += gridSize.width;
-      } else {
-        newRect.left -= gridSize.width;
-      }
-    }
-    while (newRect.height < minimumSizeOnGrid.height) {
-      if (newRect.isTopBoundCloserThanBottom(originalRect)) {
-        newRect.bottom += gridSize.height;
-      } else {
-        newRect.top -= gridSize.height;
-      }
-    }
-    return newRect;
-  }
+    double newWidth = enforceBounds(
+        rectOnGrid.width, minimumSizeOnGrid.width, maximumSizeOnGrid?.width);
+    double newHeight = enforceBounds(
+        rectOnGrid.height, minimumSizeOnGrid.height, maximumSizeOnGrid?.height);
 
-  /// Shrinks the resized rect in steps of gridSize if it is too large,
-  /// starting on the side where the edge is closer to the original one
-  NodeRect _getNewBoundsWithMaximumSizeOnGrid(
-      NodeRect rectOnGrid, NodeRect originalRect) {
-    if (maximumSizeOnGrid == null) return rectOnGrid;
+    if (newWidth != rectOnGrid.width) {
+      if ((changeableEdges == null &&
+              rectOnGrid.isLeftBoundCloserThanRight(originalRect)) ||
+          changeableEdges!.isRight) {
+        rectOnGrid.right = rectOnGrid.left + newWidth;
+      } else {
+        rectOnGrid.left = rectOnGrid.right - newWidth;
+      }
+    }
 
-    NodeRect newRect = rectOnGrid.copyWith();
-    while (newRect.width > maximumSizeOnGrid!.width) {
-      if (newRect.isLeftBoundCloserThanRight(originalRect)) {
-        newRect.right -= gridSize.width;
+    if (newHeight != rectOnGrid.height) {
+      if ((changeableEdges == null &&
+              rectOnGrid.isTopBoundCloserThanBottom(originalRect)) ||
+          changeableEdges!.isBottom) {
+        rectOnGrid.bottom = rectOnGrid.top + newHeight;
       } else {
-        newRect.left += gridSize.width;
+        rectOnGrid.top = rectOnGrid.bottom - newHeight;
       }
     }
-    while (newRect.height > maximumSizeOnGrid!.height) {
-      if (newRect.isTopBoundCloserThanBottom(originalRect)) {
-        newRect.bottom -= gridSize.height;
-      } else {
-        newRect.top += gridSize.height;
-      }
-    }
-    return newRect;
+
+    return rectOnGrid;
   }
 
   static Size _getMinimumSizeOnGrid(Size gridSize, Size? minimumNodeSize) {

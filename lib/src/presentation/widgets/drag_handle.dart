@@ -1,9 +1,7 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:infinite_canvas/infinite_canvas.dart';
 import 'package:infinite_canvas/src/domain/model/canvas_config.dart';
-import 'package:infinite_canvas/src/presentation/utils/helpers.dart';
+import 'package:infinite_canvas/src/presentation/utils/resize_helper.dart';
 
 class DragHandle extends StatefulWidget {
   final InfiniteCanvasController controller;
@@ -27,8 +25,9 @@ class _DragHandleState extends State<DragHandle> {
   late final InfiniteCanvasController controller;
   late final InfiniteCanvasNode node;
 
-  late Rect initialBounds;
-  late Rect minimumSizeBounds;
+  late NodeRect initialNodeRect;
+  late NodeRect minimumSizeBounds;
+  late NodeRect maximumSizeBounds;
   late Offset draggingOffset;
   late VoidCallback controllerListener;
 
@@ -47,17 +46,21 @@ class _DragHandleState extends State<DragHandle> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final al = widget.alignment;
+    final dhAlignment = widget.alignment;
     final canvasConfig = widget.canvasConfig;
     return Listener(
         onPointerDown: (details) {
-          initialBounds = Rect.fromLTWH(node.offset.dx, node.offset.dy,
-              node.size.width, node.size.height);
-          minimumSizeBounds = Rect.fromLTRB(
-              initialBounds.right - canvasConfig.minimumNodeSize.width,
-              initialBounds.bottom - canvasConfig.minimumNodeSize.height,
-              initialBounds.left + canvasConfig.minimumNodeSize.width,
-              initialBounds.top + canvasConfig.minimumNodeSize.height);
+          initialNodeRect = node.nodeRect.copyWith();
+          minimumSizeBounds = NodeRect.fromLTRB(
+              initialNodeRect.right - canvasConfig.minimumNodeSize.width,
+              initialNodeRect.bottom - canvasConfig.minimumNodeSize.height,
+              initialNodeRect.left + canvasConfig.minimumNodeSize.width,
+              initialNodeRect.top + canvasConfig.minimumNodeSize.height);
+          maximumSizeBounds = NodeRect.fromLTRB(
+              initialNodeRect.right - canvasConfig.maximumNodeSize.width,
+              initialNodeRect.bottom - canvasConfig.maximumNodeSize.height,
+              initialNodeRect.left + canvasConfig.maximumNodeSize.width,
+              initialNodeRect.top + canvasConfig.maximumNodeSize.height);
           draggingOffset = Offset.zero;
         },
         onPointerUp: (details) {
@@ -70,65 +73,38 @@ class _DragHandleState extends State<DragHandle> {
           if (!widget.controller.mouseDown) return;
 
           draggingOffset = draggingOffset + details.delta;
-          Rect newBounds = initialBounds;
+          NodeRect newNodeRect = initialNodeRect.copyWith(
+              left: dhAlignment.isLeft
+                  ? initialNodeRect.left + draggingOffset.dx
+                  : null,
+              top: dhAlignment.isTop
+                  ? initialNodeRect.top + draggingOffset.dy
+                  : null,
+              right: dhAlignment.isRight
+                  ? initialNodeRect.right + draggingOffset.dx
+                  : null,
+              bottom: dhAlignment.isBottom
+                  ? initialNodeRect.bottom + draggingOffset.dy
+                  : null);
 
-          if (al.isLeft) {
-            newBounds = Rect.fromLTRB(
-                min(minimumSizeBounds.left, newBounds.left + draggingOffset.dx),
-                newBounds.top,
-                newBounds.right,
-                newBounds.bottom);
-          }
-          if (al.isTop) {
-            newBounds = Rect.fromLTRB(
-                newBounds.left,
-                min(minimumSizeBounds.top, newBounds.top + draggingOffset.dy),
-                newBounds.right,
-                newBounds.bottom);
-          }
-
-          if (canvasConfig.snapResizeToGrid && (al.isLeft || al.isTop)) {
-            final snappedLeft = adjustEdgeToGrid(
-                newBounds.left, canvasConfig.gridSize.width,
-                maximum: minimumSizeBounds.left, allowMinAndMaxSizes: false);
-            final snappedTop = adjustEdgeToGrid(
-                newBounds.top, canvasConfig.gridSize.height,
-                maximum: minimumSizeBounds.top, allowMinAndMaxSizes: false);
-            newBounds = Rect.fromLTRB(
-                snappedLeft, snappedTop, newBounds.right, newBounds.bottom);
-          }
-
-          if (al.isRight) {
-            newBounds = Rect.fromLTWH(
-                newBounds.left,
-                newBounds.top,
-                max(canvasConfig.minimumNodeSize.width,
-                    newBounds.width + draggingOffset.dx),
-                newBounds.height);
-          }
-          if (al.isBottom) {
-            newBounds = Rect.fromLTWH(
-                newBounds.left,
-                newBounds.top,
-                newBounds.width,
-                max(canvasConfig.minimumNodeSize.height,
-                    newBounds.height + draggingOffset.dy));
-          }
-
-          if (canvasConfig.snapResizeToGrid && (al.isRight || al.isBottom)) {
-            final snappedRight = adjustEdgeToGrid(
-                newBounds.right, canvasConfig.gridSize.width,
-                minimum: minimumSizeBounds.right);
-            final snappedBottom = adjustEdgeToGrid(
-                newBounds.bottom, canvasConfig.gridSize.height,
-                minimum: minimumSizeBounds.bottom);
-            newBounds = Rect.fromLTRB(
-                newBounds.left, newBounds.top, snappedRight, snappedBottom);
+          if (canvasConfig.snapResizeToGrid) {
+            final resizeHelper = ResizeHelper(
+                canvasConfig.gridSize,
+                canvasConfig.minimumNodeSize,
+                canvasConfig.maximumNodeSize,
+                ResizeSnapMode.closest,
+                changeableEdges: dhAlignment);
+            newNodeRect = resizeHelper.getRectResizedToGrid(newNodeRect);
+          } else {
+            newNodeRect = newNodeRect.adjustToBounds(
+                canvasConfig.minimumNodeSize, canvasConfig.maximumNodeSize,
+                moveLeftEdge: dhAlignment.isLeft,
+                moveTopEdge: dhAlignment.isTop);
           }
 
           node.update(
-              size: newBounds.size,
-              offset: newBounds.topLeft,
+              size: newNodeRect.size,
+              offset: newNodeRect.topLeft,
               setCurrentlyResizing: true);
           controller.edit(node);
         },
