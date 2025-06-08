@@ -30,19 +30,27 @@ class ResizeHelper {
   }
 
   NodeRect _getRectResizedToGridIgnoringBounds(NodeRect originalRect) {
-    final leftAndTopRoundingMode =
-        _getRoundingModeForSnapMode(snapMode, leftOrTop: true);
-    final rightAndBottomRoundingMode =
-        _getRoundingModeForSnapMode(snapMode, leftOrTop: false);
+    final roundingModeLeft = _getRoundingModeForSnapMode(
+        snapMode, originalRect.left,
+        leftOrTop: true);
+    final roundingModeTop = _getRoundingModeForSnapMode(
+        snapMode, originalRect.top,
+        leftOrTop: true);
+    final roundingModeRight = _getRoundingModeForSnapMode(
+        snapMode, originalRect.right,
+        leftOrTop: false);
+    final roundingModeBottom = _getRoundingModeForSnapMode(
+        snapMode, originalRect.bottom,
+        leftOrTop: false);
 
     final newLeft = adjustEdgeToGrid(originalRect.left, gridSize.width,
-        roundingMode: leftAndTopRoundingMode);
+        roundingMode: roundingModeLeft);
     final newTop = adjustEdgeToGrid(originalRect.top, gridSize.height,
-        roundingMode: leftAndTopRoundingMode);
+        roundingMode: roundingModeTop);
     final newRight = adjustEdgeToGrid(originalRect.right, gridSize.width,
-        roundingMode: rightAndBottomRoundingMode);
+        roundingMode: roundingModeRight);
     final newBottom = adjustEdgeToGrid(originalRect.bottom, gridSize.height,
-        roundingMode: rightAndBottomRoundingMode);
+        roundingMode: roundingModeBottom);
 
     if (changeableEdges != null) {
       return originalRect.copyWith(
@@ -54,14 +62,21 @@ class ResizeHelper {
     return NodeRect.fromLTRB(newLeft, newTop, newRight, newBottom);
   }
 
-  RoundingMode _getRoundingModeForSnapMode(ResizeSnapMode snapMode,
+  RoundingMode _getRoundingModeForSnapMode(
+      ResizeSnapMode snapMode, double value,
       {bool leftOrTop = true}) {
     switch (snapMode) {
       case ResizeSnapMode.closest:
         return RoundingMode.closest;
       case ResizeSnapMode.grow:
+        // Left and top coordinates need to decrease (floor)
+        // for the rectangle to get bigger;
+        // Right and bottom coordinates need to increase (ceil)
         return leftOrTop ? RoundingMode.floor : RoundingMode.ceil;
       case ResizeSnapMode.shrink:
+        // Left and top coordinates need to increase (ceil)
+        // for the rectangle to get smaller;
+        // Right and bottom coordinates need to decrease (floor)
         return leftOrTop ? RoundingMode.ceil : RoundingMode.floor;
     }
   }
@@ -74,6 +89,9 @@ class ResizeHelper {
         rectOnGrid.height, minimumSizeOnGrid.height, maximumSizeOnGrid?.height);
 
     if (newWidth != rectOnGrid.width) {
+      // If the resized width did not satisfy the constraints, either the left
+      // or the right edge needs to be moved accordingly, depending on which
+      // edge is changeable and which original edge is closer to the next grid line
       if ((changeableEdges == null &&
               rectOnGrid.isLeftBoundCloserThanRight(originalRect)) ||
           changeableEdges!.isRight) {
@@ -84,6 +102,9 @@ class ResizeHelper {
     }
 
     if (newHeight != rectOnGrid.height) {
+      // If the resized height did not satisfy the constraints, either the top
+      // or the bottom edge needs to be moved accordingly, depending on which
+      // edge is changeable and which original edge is closer to the next grid line
       if ((changeableEdges == null &&
               rectOnGrid.isTopBoundCloserThanBottom(originalRect)) ||
           changeableEdges!.isBottom) {
@@ -97,14 +118,17 @@ class ResizeHelper {
   }
 
   static Size _getMinimumSizeOnGrid(Size gridSize, Size? minimumNodeSize) {
-    final minWidth =
-        (minimumNodeSize == null || minimumNodeSize.width <= gridSize.width)
-            ? gridSize.width
-            : gridSize.width * 2;
-    final minHeight =
-        (minimumNodeSize == null || minimumNodeSize.height <= gridSize.height)
-            ? gridSize.height
-            : gridSize.height * 2;
+    if (minimumNodeSize == null) {
+      return Size(gridSize.width, gridSize.height);
+    }
+    final minWidth = minimumNodeSize.width <= gridSize.width
+        ? gridSize.width
+        : adjustEdgeToGrid(minimumNodeSize.width, gridSize.width,
+            roundingMode: RoundingMode.ceil);
+    final minHeight = minimumNodeSize.height <= gridSize.height
+        ? gridSize.height
+        : adjustEdgeToGrid(minimumNodeSize.height, gridSize.height,
+            roundingMode: RoundingMode.ceil);
     return Size(minWidth, minHeight);
   }
 
@@ -112,6 +136,8 @@ class ResizeHelper {
     if (maximumNodeSize == null) {
       return null;
     }
+    // If the maximum node size is smaller than the grid size
+    // we still return the maximum node size
     final maxWidth = maximumNodeSize.width <= gridSize.width
         ? maximumNodeSize.width
         : adjustEdgeToGrid(maximumNodeSize.width, gridSize.width,

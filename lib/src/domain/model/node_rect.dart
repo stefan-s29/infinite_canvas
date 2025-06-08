@@ -7,7 +7,11 @@ import '../utils/resize_helper.dart';
 /// A representation of the offset and size of a node;
 /// in contrast to the Rect class, the 4 main attributes are changeable here
 class NodeRect {
-  NodeRect.fromLTRB(this.left, this.top, this.right, this.bottom);
+  NodeRect.fromLTRB(double left, double top, double right, double bottom)
+      : left = left <= right ? left : right,
+        right = left <= right ? right : left,
+        top = top <= bottom ? top : bottom,
+        bottom = top <= bottom ? bottom : top;
 
   NodeRect.fromLTWH(this.left, this.top, double width, double height)
       : right = left + width,
@@ -29,6 +33,24 @@ class NodeRect {
   double top;
   double right;
   double bottom;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NodeRect &&
+          runtimeType == other.runtimeType &&
+          left == other.left &&
+          top == other.top &&
+          right == other.right &&
+          bottom == other.bottom;
+
+  @override
+  int get hashCode => Object.hash(left, top, right, bottom);
+
+  @override
+  String toString() {
+    return 'NodeRect(left: $left, top: $top, right: $right, bottom: $bottom)';
+  }
 
   double get width => right - left;
   double get height => bottom - top;
