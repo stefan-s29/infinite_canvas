@@ -47,6 +47,28 @@ void main() {
       expect(adjustedEdge, 16);
     });
 
+    test('adjustEdgeToGrid should round a negative value to a multiple of 8',
+        () {
+      final adjustedEdge = adjustEdgeToGrid(-19, 8);
+      expect(adjustedEdge, -16);
+    });
+
+    test(
+        'adjustEdgeToGrid should round up a negative value to a multiple of 8 with roundingMode=ceil',
+        () {
+      final adjustedEdge =
+          adjustEdgeToGrid(-20, 8, roundingMode: RoundingMode.ceil);
+      expect(adjustedEdge, -16);
+    });
+
+    test(
+        'adjustEdgeToGrid should round down a negative value to a multiple of 8 with roundingMode=floor',
+        () {
+      final adjustedEdge =
+          adjustEdgeToGrid(-19, 8, roundingMode: RoundingMode.floor);
+      expect(adjustedEdge, -24);
+    });
+
     test(
         'adjustEdgeToGrid should not surpass the maximum size if allowMinAndMaxSizes is false',
         () {
@@ -156,6 +178,20 @@ void main() {
         () {
       final value = enforceBounds(44, 41, 43);
       expect(value, 43);
+    });
+
+    test(
+        'enforceBounds should return the minimum for a negative value that is too low',
+        () {
+      final value = enforceBounds(-40, -10, 100);
+      expect(value, -10);
+    });
+
+    test(
+        'enforceBounds should return the maximum for a negative value that is too high',
+        () {
+      final value = enforceBounds(-40, -100, -50);
+      expect(value, -50);
     });
   });
 
