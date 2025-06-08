@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:infinite_canvas/infinite_canvas.dart';
-import 'package:infinite_canvas/src/domain/model/canvas_config.dart';
 import 'package:infinite_canvas/src/presentation/utils/resize_helper.dart';
 
 class DragHandle extends StatefulWidget {
@@ -64,10 +63,10 @@ class _DragHandleState extends State<DragHandle> {
           draggingOffset = Offset.zero;
         },
         onPointerUp: (details) {
-          node.update(setCurrentlyResizing: false);
+          node.update(canvasConfig, setCurrentlyResizing: false);
         },
         onPointerCancel: (details) {
-          node.update(setCurrentlyResizing: false);
+          node.update(canvasConfig, setCurrentlyResizing: false);
         },
         onPointerMove: (details) {
           if (!widget.controller.mouseDown) return;
@@ -102,7 +101,7 @@ class _DragHandleState extends State<DragHandle> {
                 moveTopEdge: dhAlignment.isTop);
           }
 
-          node.update(
+          node.update(canvasConfig,
               size: newNodeRect.size,
               offset: newNodeRect.topLeft,
               setCurrentlyResizing: true);

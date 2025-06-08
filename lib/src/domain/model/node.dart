@@ -16,35 +16,22 @@ class InfiniteCanvasNode<T> {
     this.allowMove = true,
     this.clipBehavior = Clip.none,
     this.value,
-  })  : _canvasConfig = canvasConfig,
-        _nodeRect = NodeRect.fromOffsetAndSize(offset, size).adjustToBounds(
+  }) : _nodeRect = NodeRect.fromOffsetAndSize(offset, size).adjustToBounds(
             canvasConfig.minimumNodeSize, canvasConfig.maximumNodeSize);
 
   String get id => key.toString();
 
   final LocalKey key;
 
-  CanvasConfig _canvasConfig;
-  CanvasConfig get canvasConfig => _canvasConfig;
-  set canvasConfig(CanvasConfig newConfig) {
-    CanvasConfig oldConfig = _canvasConfig;
-    _canvasConfig = newConfig;
-
-    if ((newConfig.minimumNodeSize != oldConfig.minimumNodeSize ||
-        newConfig.maximumNodeSize != oldConfig.maximumNodeSize)) {
-      _setSize(size);
-    }
-  }
-
   NodeRect _nodeRect;
   NodeRect get nodeRect => _nodeRect;
-  set nodeRect(NodeRect newRect) {
+  void setNodeRect(CanvasConfig canvasConfig, NodeRect newRect) {
     offset = newRect.topLeft;
-    _setSize(newRect.size);
+    _setSize(canvasConfig, newRect.size);
   }
 
   Size get size => _nodeRect.size;
-  void _setSize(Size givenSize) {
+  void _setSize(CanvasConfig canvasConfig, Size givenSize) {
     final resizedNodeRect =
         NodeRect.fromOffsetAndSize(_nodeRect.offset, givenSize);
     _nodeRect = resizedNodeRect.adjustToBounds(
@@ -66,7 +53,7 @@ class InfiniteCanvasNode<T> {
   Rect get rect => _nodeRect.toRect();
   static const double borderInset = 2;
 
-  void update(
+  void update(CanvasConfig canvasConfig,
       {Size? size, Offset? offset, String? label, bool? setCurrentlyResizing}) {
     if (setCurrentlyResizing != null) {
       currentlyResizing = setCurrentlyResizing;
@@ -86,21 +73,26 @@ class InfiniteCanvasNode<T> {
     }
 
     if (size != null && resizeHandlesMode.isEnabled) {
-      _setSize(size);
+      _setSize(canvasConfig, size);
     }
     if (label != null) this.label = label;
   }
 
-  void alignWithGrid(
+  void adjustToNewCanvasConfig(CanvasConfig newCanvasConfig) {
+    _setSize(newCanvasConfig, size);
+  }
+
+  void alignWithGrid(CanvasConfig canvasConfig,
       {PositioningSnapMode snapMode = PositioningSnapMode.closest}) {
     final currentRect = NodeRect.fromOffsetAndSize(offset, size);
     this.offset = currentRect.getClosestSnapPosition(canvasConfig.gridSize);
   }
 
-  void resizeToFitGrid({ResizeSnapMode snapMode = ResizeSnapMode.closest}) {
+  void resizeToFitGrid(CanvasConfig canvasConfig,
+      {ResizeSnapMode snapMode = ResizeSnapMode.closest}) {
     final resizedRect = _nodeRect.getRectResizedToGrid(canvasConfig.gridSize,
         canvasConfig.minimumNodeSize, canvasConfig.maximumNodeSize, snapMode);
-    nodeRect = resizedRect;
+    setNodeRect(canvasConfig, resizedRect);
   }
 }
 

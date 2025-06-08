@@ -18,8 +18,7 @@ class InfiniteCanvasController extends ChangeNotifier implements Graph {
     CanvasConfig canvasConfig = CanvasConfig.defaultConfig,
     List<InfiniteCanvasNode> nodes = const [],
     List<InfiniteCanvasEdge> edges = const [],
-  })  : _canvasConfig = canvasConfig,
-        configChangeNotifier = ValueNotifier<CanvasConfig>(canvasConfig) {
+  }) : _canvasConfig = canvasConfig {
     if (nodes.isNotEmpty) {
       this.nodes.addAll(nodes);
     }
@@ -36,11 +35,12 @@ class InfiniteCanvasController extends ChangeNotifier implements Graph {
   CanvasConfig _canvasConfig;
   CanvasConfig get canvasConfig => _canvasConfig;
 
-  ValueNotifier<CanvasConfig> configChangeNotifier;
-
   void _setCanvasConfig(CanvasConfig newConfig) {
     _canvasConfig = newConfig;
-    configChangeNotifier.notifyListeners();
+    for (var node in nodes) {
+      node.adjustToNewCanvasConfig(newConfig);
+    }
+    notifyListeners();
   }
 
   void setGridSize(Size gridSize) {
@@ -315,7 +315,7 @@ class InfiniteCanvasController extends ChangeNotifier implements Graph {
       if (index == -1) continue;
       final current = nodes[index];
       final origin = _selectedOrigins[key];
-      current.update(offset: origin! + delta);
+      current.update(canvasConfig, offset: origin! + delta);
       if (_formatter != null) {
         _formatter!(current);
       }
@@ -451,7 +451,7 @@ class InfiniteCanvasController extends ChangeNotifier implements Graph {
       final index = nodes.indexWhere((e) => e.key == key);
       if (index == -1) continue;
       final current = nodes[index];
-      current.alignWithGrid(snapMode: snapMode);
+      current.alignWithGrid(canvasConfig, snapMode: snapMode);
     }
     notifyListeners();
   }
@@ -462,7 +462,7 @@ class InfiniteCanvasController extends ChangeNotifier implements Graph {
       final index = nodes.indexWhere((e) => e.key == key);
       if (index == -1) continue;
       final current = nodes[index];
-      current.resizeToFitGrid(snapMode: ResizeSnapMode.closest);
+      current.resizeToFitGrid(canvasConfig, snapMode: ResizeSnapMode.closest);
     }
     notifyListeners();
   }
