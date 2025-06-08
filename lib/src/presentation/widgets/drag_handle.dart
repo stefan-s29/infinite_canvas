@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:infinite_canvas/infinite_canvas.dart';
-import 'package:infinite_canvas/src/presentation/utils/resize_helper.dart';
+import 'package:infinite_canvas/src/domain/utils/resize_helper.dart';
+import 'package:infinite_canvas/src/shared/model/drag_handle_alignment.dart';
 
 class DragHandle extends StatefulWidget {
   final InfiniteCanvasController controller;
@@ -119,17 +120,4 @@ class _DragHandleState extends State<DragHandle> {
           ),
         ));
   }
-}
-
-class DragHandleAlignment {
-  final Alignment alignment;
-
-  const DragHandleAlignment(this.alignment);
-
-  bool get isLeft => alignment.x < 0;
-  bool get isRight => alignment.x > 0;
-  bool get isTop => alignment.y < 0;
-  bool get isBottom => alignment.y > 0;
-  bool get isHorizontalCenter => alignment.x == 0;
-  bool get isVerticalCenter => alignment.y == 0;
 }

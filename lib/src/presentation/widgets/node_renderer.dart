@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:infinite_canvas/infinite_canvas.dart';
+import 'package:infinite_canvas/src/shared/model/drag_handle_alignment.dart';
 
-import '../../domain/model/node.dart';
-import '../state/controller.dart';
 import 'clipper.dart';
 import 'drag_handle.dart';
 

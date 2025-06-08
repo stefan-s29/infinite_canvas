@@ -1,7 +1,8 @@
 import 'dart:ui';
 
-import 'package:infinite_canvas/src/presentation/utils/helpers.dart';
-import 'package:infinite_canvas/src/presentation/utils/resize_helper.dart';
+import 'package:infinite_canvas/src/shared/utils/helpers.dart';
+
+import '../utils/resize_helper.dart';
 
 /// A representation of the offset and size of a node;
 /// in contrast to the Rect class, the 4 main attributes are changeable here

@@ -1,9 +1,8 @@
 import 'dart:ui';
 
 import 'package:infinite_canvas/src/domain/model/node_rect.dart';
-import 'package:infinite_canvas/src/presentation/widgets/drag_handle.dart';
-
-import 'helpers.dart';
+import 'package:infinite_canvas/src/shared/model/drag_handle_alignment.dart';
+import 'package:infinite_canvas/src/shared/utils/helpers.dart';
 
 /// Class to handle resizing of nodes while snapping to the grid
 /// and respecting the min/max node size

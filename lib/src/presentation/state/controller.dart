@@ -4,7 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:infinite_canvas/src/domain/model/canvas_config.dart';
 import 'package:infinite_canvas/src/domain/model/node_rect.dart';
-import 'package:infinite_canvas/src/presentation/utils/helpers.dart';
+import 'package:infinite_canvas/src/shared/utils/helpers.dart';
 
 import '../../domain/model/edge.dart';
 import '../../domain/model/graph.dart';
