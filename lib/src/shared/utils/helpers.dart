@@ -15,13 +15,13 @@ double adjustEdgeToGrid(double rawValue, double gridEdge,
       : roundingMode == RoundingMode.ceil
           ? quotient.ceil()
           : quotient.floor();
-  final snapped = quotientRounded * gridEdge;
+  var snapped = quotientRounded * gridEdge;
 
   if (minimum != null && snapped < minimum) {
     if (allowMinAndMaxSizes) {
       return minimum;
     } else {
-      return snapped + gridEdge;
+      snapped = snapped + gridEdge;
     }
   }
   if (maximum != null && snapped > maximum) {
@@ -37,10 +37,14 @@ double adjustEdgeToGrid(double rawValue, double gridEdge,
 bool exceedsLimit(Size checkedSize, {Size? minimum, Size? maximum}) {
   if (minimum != null &&
       (checkedSize.width < minimum.width ||
-          checkedSize.height < minimum.height)) return true;
+          checkedSize.height < minimum.height)) {
+    return true;
+  }
   if (maximum != null &&
       (checkedSize.width > maximum.width ||
-          checkedSize.height > maximum.height)) return true;
+          checkedSize.height > maximum.height)) {
+    return true;
+  }
   return false;
 }
 
@@ -52,8 +56,7 @@ double enforceBounds(double value, double? min, double? max) {
 
 extension SizeWithinBounds on Size {
   bool isWithinBounds({Size? min, Size? max}) {
-    return (min == null || (width >= min.width && height >= min.height)) &&
-        (max == null || (width <= max.width && height <= max.height));
+    return !exceedsLimit(this, minimum: min, maximum: max);
   }
 
   Size adjustToBounds({Size? min, Size? max}) {
