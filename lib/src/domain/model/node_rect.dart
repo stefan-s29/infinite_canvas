@@ -68,9 +68,9 @@ class NodeRect {
     final adjustedSize = size.adjustToBounds(min: min, max: max);
     return copyWith(
       left: moveLeftEdge ? right - adjustedSize.width : null,
-      top: moveTopEdge ? bottom - adjustedSize.width : null,
+      top: moveTopEdge ? bottom - adjustedSize.height : null,
       right: !moveLeftEdge ? left + adjustedSize.width : null,
-      bottom: !moveTopEdge ? top + adjustedSize.width : null,
+      bottom: !moveTopEdge ? top + adjustedSize.height : null,
     );
   }
 
