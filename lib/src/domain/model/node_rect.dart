@@ -1,8 +1,7 @@
 import 'dart:ui';
 
+import 'package:infinite_canvas/src/shared/model/changeable_edges.dart';
 import 'package:infinite_canvas/src/shared/utils/helpers.dart';
-
-import '../utils/resize_helper.dart';
 
 /// A representation of the offset and size of a node;
 /// in contrast to the Rect class, the 4 main attributes are changeable here
@@ -86,6 +85,19 @@ class NodeRect {
         right ?? this.right, bottom ?? this.bottom);
   }
 
+  NodeRect transform(
+      double Function(double, {required bool leftOrTop}) transformer,
+      {ChangeableEdges changedEdges = ChangeableEdges.all}) {
+    return copyWith(
+        left: changedEdges.left ? transformer(left, leftOrTop: true) : left,
+        top: changedEdges.top ? transformer(top, leftOrTop: true) : top,
+        right:
+            changedEdges.right ? transformer(right, leftOrTop: false) : right,
+        bottom: changedEdges.bottom
+            ? transformer(bottom, leftOrTop: false)
+            : bottom);
+  }
+
   NodeRect adjustToBounds(Size min, Size max,
       {bool moveLeftEdge = false, bool moveTopEdge = false}) {
     final adjustedSize = size.adjustToBounds(min: min, max: max);
@@ -122,13 +134,6 @@ class NodeRect {
     final snapAtStartDelta = (snapAtStartPos - nodePosition).abs();
     final snapAtEndDelta = (snapAtEndPos - nodePosition).abs();
     return snapAtEndDelta < snapAtStartDelta ? snapAtEndPos : snapAtStartPos;
-  }
-
-  NodeRect getRectResizedToGrid(Size gridSize, Size minimumNodeSize,
-      Size maximumNodeSize, ResizeSnapMode snapMode) {
-    final resizeHelper =
-        ResizeHelper(gridSize, minimumNodeSize, maximumNodeSize, snapMode);
-    return resizeHelper.getRectResizedToGrid(this);
   }
 
   bool isLeftBoundCloserThanRight(NodeRect otherBounds) {

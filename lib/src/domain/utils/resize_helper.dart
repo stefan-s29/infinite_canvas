@@ -28,34 +28,21 @@ class ResizeHelper {
   /// that is resized to align with the grid, respecting the minimum
   /// and maximum node size
   NodeRect getRectResizedToGrid(NodeRect originalRect) {
-    NodeRect resizedRect = _getRectResizedToGridIgnoringBounds(originalRect);
-    return _getNewRectWithinBoundsOnGrid(resizedRect, originalRect);
+    NodeRect resizedRectIgnoringBounds = originalRect.transform(
+        _adjustAllChangeableEdgesToGrid,
+        changedEdges: changeableEdges);
+    if (resizedRectIgnoringBounds.size
+        .isWithinBounds(min: minimumNodeSize, max: maximumNodeSize)) {
+      return resizedRectIgnoringBounds;
+    }
+    return _getNewRectWithinBoundsOnGrid(
+        resizedRectIgnoringBounds, originalRect);
   }
 
-  NodeRect _getRectResizedToGridIgnoringBounds(NodeRect originalRect) {
-    final roundingModeLeft = _getRoundingModeForSnapMode(
-        snapMode, originalRect.left,
-        leftOrTop: true);
-    final roundingModeTop = _getRoundingModeForSnapMode(
-        snapMode, originalRect.top,
-        leftOrTop: true);
-    final roundingModeRight = _getRoundingModeForSnapMode(
-        snapMode, originalRect.right,
-        leftOrTop: false);
-    final roundingModeBottom = _getRoundingModeForSnapMode(
-        snapMode, originalRect.bottom,
-        leftOrTop: false);
-
-    final newLeft = adjustEdgeToGrid(originalRect.left, gridSize.width,
-        roundingMode: roundingModeLeft);
-    final newTop = adjustEdgeToGrid(originalRect.top, gridSize.height,
-        roundingMode: roundingModeTop);
-    final newRight = adjustEdgeToGrid(originalRect.right, gridSize.width,
-        roundingMode: roundingModeRight);
-    final newBottom = adjustEdgeToGrid(originalRect.bottom, gridSize.height,
-        roundingMode: roundingModeBottom);
-
-    return NodeRect.fromLTRB(newLeft, newTop, newRight, newBottom);
+  double _adjustAllChangeableEdgesToGrid(edgePos, {required bool leftOrTop}) {
+    return adjustEdgeToGrid(edgePos, gridSize.width,
+        roundingMode: _getRoundingModeForSnapMode(snapMode, edgePos,
+            leftOrTop: leftOrTop));
   }
 
   RoundingMode _getRoundingModeForSnapMode(
@@ -78,12 +65,12 @@ class ResizeHelper {
   }
 
   NodeRect _getNewRectWithinBoundsOnGrid(
-      NodeRect rectOnGrid, NodeRect originalRect) {
+      NodeRect resizedRect, NodeRect originalRect) {
     final rectOnGridIfChangeable = originalRect.copyWith(
-        left: changeableEdges.left ? rectOnGrid.left : null,
-        top: changeableEdges.top ? rectOnGrid.top : null,
-        right: changeableEdges.right ? rectOnGrid.right : null,
-        bottom: changeableEdges.bottom ? rectOnGrid.bottom : null);
+        left: changeableEdges.left ? resizedRect.left : null,
+        top: changeableEdges.top ? resizedRect.top : null,
+        right: changeableEdges.right ? resizedRect.right : null,
+        bottom: changeableEdges.bottom ? resizedRect.bottom : null);
 
     final widthConstraintsDelta = getLimitDelta(rectOnGridIfChangeable.width,
         minimum: minimumNodeSize.width, maximum: maximumNodeSize.width);
@@ -96,18 +83,18 @@ class ResizeHelper {
       bool adjustLeft = false;
       final adjustedLeft = adjustEdgeToGrid(
           widthConstraintsDelta > 0
-              ? rectOnGrid.right - maximumNodeSize.width
-              : rectOnGrid.right - minimumNodeSize.width,
+              ? resizedRect.right - maximumNodeSize.width
+              : resizedRect.right - minimumNodeSize.width,
           gridSize.width,
-          minimum: rectOnGrid.right - maximumNodeSize.width,
-          maximum: rectOnGrid.right - minimumNodeSize.width);
+          minimum: resizedRect.right - maximumNodeSize.width,
+          maximum: resizedRect.right - minimumNodeSize.width);
       final adjustedRight = adjustEdgeToGrid(
           widthConstraintsDelta > 0
-              ? rectOnGrid.left + minimumNodeSize.width
-              : rectOnGrid.left + maximumNodeSize.width,
+              ? resizedRect.left + minimumNodeSize.width
+              : resizedRect.left + maximumNodeSize.width,
           gridSize.width,
-          minimum: rectOnGrid.left + minimumNodeSize.width,
-          maximum: rectOnGrid.left + maximumNodeSize.width);
+          minimum: resizedRect.left + minimumNodeSize.width,
+          maximum: resizedRect.left + maximumNodeSize.width);
       final adjustedBounds = rectOnGridIfChangeable.copyWith(
           left: adjustedLeft, right: adjustedRight);
 
@@ -134,18 +121,18 @@ class ResizeHelper {
       bool adjustTop = false;
       final adjustedTop = adjustEdgeToGrid(
           heightConstraintsDelta > 0
-              ? rectOnGrid.bottom - maximumNodeSize.height
-              : rectOnGrid.bottom - minimumNodeSize.height,
+              ? resizedRect.bottom - maximumNodeSize.height
+              : resizedRect.bottom - minimumNodeSize.height,
           gridSize.height,
-          minimum: rectOnGrid.bottom - maximumNodeSize.height,
-          maximum: rectOnGrid.bottom - minimumNodeSize.height);
+          minimum: resizedRect.bottom - maximumNodeSize.height,
+          maximum: resizedRect.bottom - minimumNodeSize.height);
       final adjustedBottom = adjustEdgeToGrid(
           heightConstraintsDelta > 0
-              ? rectOnGrid.top + minimumNodeSize.height
-              : rectOnGrid.top + maximumNodeSize.height,
+              ? resizedRect.top + minimumNodeSize.height
+              : resizedRect.top + maximumNodeSize.height,
           gridSize.height,
-          minimum: rectOnGrid.top + minimumNodeSize.height,
-          maximum: rectOnGrid.top + maximumNodeSize.height);
+          minimum: resizedRect.top + minimumNodeSize.height,
+          maximum: resizedRect.top + maximumNodeSize.height);
       final adjustedBounds = rectOnGridIfChangeable.copyWith(
           top: adjustedTop, bottom: adjustedBottom);
 
@@ -160,9 +147,9 @@ class ResizeHelper {
       }
 
       if (adjustTop) {
-        rectOnGrid.top = adjustedBounds.top;
+        resizedRect.top = adjustedBounds.top;
       } else {
-        rectOnGrid.bottom = adjustedBounds.bottom;
+        resizedRect.bottom = adjustedBounds.bottom;
       }
     }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../utils/resize_helper.dart';
 import 'canvas_config.dart';
 import 'node_rect.dart';
 
@@ -90,8 +91,9 @@ class InfiniteCanvasNode<T> {
 
   void resizeToFitGrid(CanvasConfig canvasConfig,
       {ResizeSnapMode snapMode = ResizeSnapMode.closest}) {
-    final resizedRect = _nodeRect.getRectResizedToGrid(canvasConfig.gridSize,
+    final resizeHelper = ResizeHelper(canvasConfig.gridSize,
         canvasConfig.minimumNodeSize, canvasConfig.maximumNodeSize, snapMode);
+    final resizedRect = resizeHelper.getRectResizedToGrid(_nodeRect);
     setNodeRect(canvasConfig, resizedRect);
   }
 }
