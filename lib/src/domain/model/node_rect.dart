@@ -93,16 +93,16 @@ class NodeRect {
     return copyWith(
         left: changedEdges.left
             ? transformer(left, leftOrTop: true, horizontal: true)
-            : left,
+            : null,
         top: changedEdges.top
             ? transformer(top, leftOrTop: true, horizontal: false)
-            : top,
+            : null,
         right: changedEdges.right
             ? transformer(right, leftOrTop: false, horizontal: true)
-            : right,
+            : null,
         bottom: changedEdges.bottom
             ? transformer(bottom, leftOrTop: false, horizontal: false)
-            : bottom);
+            : null);
   }
 
   NodeRect adjustToBounds(Size min, Size max,
