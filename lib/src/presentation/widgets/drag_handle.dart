@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:infinite_canvas/infinite_canvas.dart';
 import 'package:infinite_canvas/src/domain/utils/resize_helper.dart';
-import 'package:infinite_canvas/src/shared/model/drag_handle_alignment.dart';
+import 'package:infinite_canvas/src/shared/model/changeable_edges.dart';
 
 class DragHandle extends StatefulWidget {
   final InfiniteCanvasController controller;
   final InfiniteCanvasNode node;
-  final DragHandleAlignment alignment;
+  final ChangeableEdges alignment;
   final CanvasConfig canvasConfig;
 
   const DragHandle({
@@ -74,16 +74,16 @@ class _DragHandleState extends State<DragHandle> {
 
           draggingOffset = draggingOffset + details.delta;
           NodeRect newNodeRect = initialNodeRect.copyWith(
-              left: dhAlignment.isLeft
+              left: dhAlignment.left
                   ? initialNodeRect.left + draggingOffset.dx
                   : null,
-              top: dhAlignment.isTop
+              top: dhAlignment.top
                   ? initialNodeRect.top + draggingOffset.dy
                   : null,
-              right: dhAlignment.isRight
+              right: dhAlignment.right
                   ? initialNodeRect.right + draggingOffset.dx
                   : null,
-              bottom: dhAlignment.isBottom
+              bottom: dhAlignment.bottom
                   ? initialNodeRect.bottom + draggingOffset.dy
                   : null);
 
@@ -98,8 +98,7 @@ class _DragHandleState extends State<DragHandle> {
           } else {
             newNodeRect = newNodeRect.adjustToBounds(
                 canvasConfig.minimumNodeSize, canvasConfig.maximumNodeSize,
-                moveLeftEdge: dhAlignment.isLeft,
-                moveTopEdge: dhAlignment.isTop);
+                moveLeftEdge: dhAlignment.left, moveTopEdge: dhAlignment.top);
           }
 
           node.update(canvasConfig,

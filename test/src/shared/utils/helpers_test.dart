@@ -113,38 +113,108 @@ void main() {
 
   group('exceedsLimit', () {
     test('exceedsLimit should return false if no constraints are given', () {
-      final result = exceedsLimit(const Size(200, 100));
+      final result = exceedsLimit(42);
       expect(result, false);
     });
 
     test('exceedsLimit should return false if no constraints are exceeded', () {
-      final result = exceedsLimit(const Size(200, 100),
+      final result = exceedsLimit(42, minimum: 41, maximum: 43);
+      expect(result, false);
+    });
+
+    test('exceedsLimit should return true if the minimum is not satisfied', () {
+      final result = exceedsLimit(40, minimum: 41, maximum: 43);
+      expect(result, true);
+    });
+
+    test('exceedsLimit should return true if the maximum is not satisfied', () {
+      final result = exceedsLimit(44, minimum: 41, maximum: 43);
+      expect(result, true);
+    });
+  });
+
+  ///
+  /// getLimitDelta
+  ///
+
+  group('getLimitDelta', () {
+    test('getLimitDelta should return 0 if no constraints are given', () {
+      final result = getLimitDelta(42);
+      expect(result, 0);
+    });
+
+    test('getLimitDelta should return 0 if no constraints are exceeded', () {
+      final result = getLimitDelta(42, minimum: 41, maximum: 43);
+      expect(result, 0);
+    });
+
+    test('getLimitDelta should return -1 if the minimum is not met by 1', () {
+      final result = getLimitDelta(40, minimum: 41, maximum: 43);
+      expect(result, -1);
+    });
+
+    test(
+        'getLimitDelta should return the negative delta between the minimum and the tested value if it is too low',
+        () {
+      final result = getLimitDelta(17, minimum: 41, maximum: 43);
+      expect(result, -24);
+    });
+
+    test('getLimitDelta should return 1 if the maximum is exceeded by 1', () {
+      final result = getLimitDelta(44, minimum: 41, maximum: 43);
+      expect(result, 1);
+    });
+
+    test(
+        'getLimitDelta should return the positive delta between the maximum and the tested value if it is too high',
+        () {
+      final result = getLimitDelta(79, minimum: 41, maximum: 43);
+      expect(result, 36);
+    });
+  });
+
+  ///
+  /// exceedsSizeLimit
+  ///
+
+  group('exceedsSizeLimit', () {
+    test('exceedsSizeLimit should return false if no constraints are given',
+        () {
+      final result = exceedsSizeLimit(const Size(200, 100));
+      expect(result, false);
+    });
+
+    test('exceedsSizeLimit should return false if no constraints are exceeded',
+        () {
+      final result = exceedsSizeLimit(const Size(200, 100),
           minimum: const Size(199, 99), maximum: const Size(201, 101));
       expect(result, false);
     });
 
-    test('exceedsLimit should return true if the given width is too large', () {
-      final result = exceedsLimit(const Size(202, 100),
-          minimum: const Size(199, 99), maximum: const Size(201, 101));
-      expect(result, true);
-    });
-
-    test('exceedsLimit should return true if the given height is too large',
+    test('exceedsSizeLimit should return true if the given width is too large',
         () {
-      final result = exceedsLimit(const Size(200, 102),
+      final result = exceedsSizeLimit(const Size(202, 100),
           minimum: const Size(199, 99), maximum: const Size(201, 101));
       expect(result, true);
     });
 
-    test('exceedsLimit should return true if the given width is too small', () {
-      final result = exceedsLimit(const Size(198, 100),
-          minimum: const Size(199, 99), maximum: const Size(201, 101));
-      expect(result, true);
-    });
-
-    test('exceedsLimit should return true if the given height is too small',
+    test('exceedsSizeLimit should return true if the given height is too large',
         () {
-      final result = exceedsLimit(const Size(200, 98),
+      final result = exceedsSizeLimit(const Size(200, 102),
+          minimum: const Size(199, 99), maximum: const Size(201, 101));
+      expect(result, true);
+    });
+
+    test('exceedsSizeLimit should return true if the given width is too small',
+        () {
+      final result = exceedsSizeLimit(const Size(198, 100),
+          minimum: const Size(199, 99), maximum: const Size(201, 101));
+      expect(result, true);
+    });
+
+    test('exceedsSizeLimit should return true if the given height is too small',
+        () {
+      final result = exceedsSizeLimit(const Size(200, 98),
           minimum: const Size(199, 99), maximum: const Size(201, 101));
       expect(result, true);
     });

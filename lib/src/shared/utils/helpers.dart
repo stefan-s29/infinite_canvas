@@ -34,18 +34,25 @@ double adjustEdgeToGrid(double rawValue, double gridEdge,
   return snapped;
 }
 
-bool exceedsLimit(Size checkedSize, {Size? minimum, Size? maximum}) {
-  if (minimum != null &&
-      (checkedSize.width < minimum.width ||
-          checkedSize.height < minimum.height)) {
-    return true;
+bool exceedsLimit(double checkedValue, {double? minimum, double? maximum}) {
+  return (minimum != null && checkedValue < minimum) ||
+      (maximum != null && checkedValue > maximum);
+}
+
+double getLimitDelta(double checkedValue, {double? minimum, double? maximum}) {
+  if (minimum != null && checkedValue < minimum) {
+    return checkedValue - minimum; // return a negative value if too small
+  } else if (maximum != null && checkedValue > maximum) {
+    return checkedValue - maximum; // return a positive value if too big
   }
-  if (maximum != null &&
-      (checkedSize.width > maximum.width ||
-          checkedSize.height > maximum.height)) {
-    return true;
-  }
-  return false;
+  return 0;
+}
+
+bool exceedsSizeLimit(Size checkedSize, {Size? minimum, Size? maximum}) {
+  return exceedsLimit(checkedSize.width,
+          minimum: minimum?.width, maximum: maximum?.width) ||
+      exceedsLimit(checkedSize.height,
+          minimum: minimum?.height, maximum: maximum?.height);
 }
 
 double enforceBounds(double value, double? min, double? max) {
@@ -56,7 +63,7 @@ double enforceBounds(double value, double? min, double? max) {
 
 extension SizeWithinBounds on Size {
   bool isWithinBounds({Size? min, Size? max}) {
-    return !exceedsLimit(this, minimum: min, maximum: max);
+    return !exceedsSizeLimit(this, minimum: min, maximum: max);
   }
 
   Size adjustToBounds({Size? min, Size? max}) {

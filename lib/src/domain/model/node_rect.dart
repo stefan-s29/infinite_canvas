@@ -132,11 +132,11 @@ class NodeRect {
   }
 
   bool isLeftBoundCloserThanRight(NodeRect otherBounds) {
-    return (otherBounds.left - left).abs() <= (otherBounds.right - right).abs();
+    return (otherBounds.left - left).abs() < (otherBounds.right - right).abs();
   }
 
   bool isTopBoundCloserThanBottom(NodeRect otherBounds) {
-    return (otherBounds.top - top).abs() <= (otherBounds.bottom - bottom).abs();
+    return (otherBounds.top - top).abs() < (otherBounds.bottom - bottom).abs();
   }
 }
 

@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:infinite_canvas/src/domain/model/node_rect.dart';
 import 'package:infinite_canvas/src/domain/utils/resize_helper.dart';
-import 'package:infinite_canvas/src/shared/model/drag_handle_alignment.dart';
+import 'package:infinite_canvas/src/shared/model/changeable_edges.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -91,11 +91,11 @@ void main() {
         () {
       // left/right adjusted to grid (32): -32 / 0
       // 32 - 0 < 100 -> need to extend the rectangle to a width of 128 (4 x 32)
-      // Move right from 0 to 96
+      // Move right from 0 to 96 (10 is closer to 96 than -30 is to -128)
       //
       // top/bottom adjusted to grid (16): 16 / 16
       // 16 - 16 < 20 -> need to extend the rectangle to a width of 32 (2 x 16)
-      // Move bottom from 16 to 48
+      // Move bottom from 16 to 48 (21 is closer to 48 than 20 is to -16)
       final originalRect = NodeRect.fromLTRB(-30, 20, 10, 21);
       final newRect = resizeHelper.getRectResizedToGrid(originalRect);
       expect(newRect, NodeRect.fromLTRB(-32, 16, 96, 48));
@@ -106,15 +106,14 @@ void main() {
         () {
       // left/right adjusted to grid (32): -64 / 192
       // 192 -(-64) > 200 -> need to shrink the rectangle to a width of 192 (6 x 32)
-      // Move right from 192 to 128
-      // TODO left should move because -60 is closer to 0 than 200 is to 128
+      // Move left from -64 to 0 (-60 is closer to 0 than 192 is to 128)
       //
       // top/bottom adjusted to grid (16): 32 / 144
       // 144 - 32 > 100 -> need to shrink the rectangle to a height of 96 (6 x 16)
-      // Move bottom from 144 to 128
+      // Move top from 32 to 48 (48 is closer to 30 than 150 is to 128)
       final originalRect = NodeRect.fromLTRB(-60, 30, 200, 150);
       final newRect = resizeHelper.getRectResizedToGrid(originalRect);
-      expect(newRect, NodeRect.fromLTRB(-64, 32, 128, 128));
+      expect(newRect, NodeRect.fromLTRB(0, 48, 192, 144));
     });
   });
 
@@ -126,15 +125,15 @@ void main() {
     const maximumNodeSize = Size(200, 100);
     final resizeHelper = ResizeHelper(
         gridSize, minimumNodeSize, maximumNodeSize, ResizeSnapMode.closest,
-        changeableEdges: const DragHandleAlignment(Alignment.topLeft));
+        changeableEdges: const ChangeableEdges(
+            left: true, top: true, right: false, bottom: false));
 
-    // TODO fix test
     test(
-        'ResizeHelper.getRectResizedToGrid should respect the minimum node size while snapping',
+        'ResizeHelper.getRectResizedToGrid should respect the minimum node size while snapping, only changing the left and top edges',
         () {
       final originalRect = NodeRect.fromLTRB(-30, 20, 10, 21);
       final newRect = resizeHelper.getRectResizedToGrid(originalRect);
-      expect(newRect, NodeRect.fromLTRB(-32, 16, 96, 48));
+      expect(newRect, NodeRect.fromLTRB(-32, 16, 10, 21));
     });
 
     // TODO fix test

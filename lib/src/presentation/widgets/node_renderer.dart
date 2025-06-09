@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:infinite_canvas/infinite_canvas.dart';
-import 'package:infinite_canvas/src/shared/model/drag_handle_alignment.dart';
+import 'package:infinite_canvas/src/shared/model/changeable_edges.dart';
 
 import 'clipper.dart';
 import 'drag_handle.dart';
@@ -94,20 +94,20 @@ class NodeRenderer extends StatelessWidget {
   }
 
   Positioned _buildDragHandle(Alignment alignment) {
-    final dragHandleAlignment = DragHandleAlignment(alignment);
+    final dragHandleAlignment = ChangeableEdges.fromAlignment(alignment);
     return Positioned(
-        left: dragHandleAlignment.isLeft
+        left: dragHandleAlignment.left
             ? 0
-            : dragHandleAlignment.isHorizontalCenter
-                ? node.size.width / 2 - dragHandleSize.width / 2
-                : null,
-        right: dragHandleAlignment.isRight ? 0 : null,
-        top: dragHandleAlignment.isTop
+            : dragHandleAlignment.right
+                ? null
+                : node.size.width / 2 - dragHandleSize.width / 2,
+        right: dragHandleAlignment.right ? 0 : null,
+        top: dragHandleAlignment.top
             ? 0
-            : dragHandleAlignment.isVerticalCenter
-                ? node.size.height / 2 - dragHandleSize.height / 2
-                : null,
-        bottom: dragHandleAlignment.isBottom ? 0 : null,
+            : dragHandleAlignment.bottom
+                ? null
+                : node.size.height / 2 - dragHandleSize.height / 2,
+        bottom: dragHandleAlignment.bottom ? 0 : null,
         child: DragHandle(
           controller: controller,
           node: node,

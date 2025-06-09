@@ -1,24 +1,27 @@
 import 'dart:ui';
 
 import 'package:infinite_canvas/src/domain/model/node_rect.dart';
-import 'package:infinite_canvas/src/shared/model/drag_handle_alignment.dart';
 import 'package:infinite_canvas/src/shared/utils/helpers.dart';
+
+import '../../shared/model/changeable_edges.dart';
 
 /// Class to handle resizing of nodes while snapping to the grid
 /// and respecting the min/max node size
 class ResizeHelper {
   ResizeHelper(
-      this.gridSize, Size minimumNodeSize, Size maximumNodeSize, this.snapMode,
-      {this.changeableEdges})
+      this.gridSize, this.minimumNodeSize, this.maximumNodeSize, this.snapMode,
+      {this.changeableEdges = ChangeableEdges.all})
       : minimumSizeOnGrid = _getMinimumSizeOnGrid(gridSize, minimumNodeSize),
         maximumSizeOnGrid = _getMaximumSizeOnGrid(gridSize, maximumNodeSize);
 
   final Size gridSize;
+  final Size minimumNodeSize;
+  final Size maximumNodeSize;
   final Size minimumSizeOnGrid;
   final Size? maximumSizeOnGrid;
 
   /// If changeableEdges is null, all 4 edges can be moved equally
-  final DragHandleAlignment? changeableEdges;
+  final ChangeableEdges changeableEdges;
   final ResizeSnapMode snapMode;
 
   /// Returns a new NodeRect object for the given NodeRect object
@@ -52,13 +55,6 @@ class ResizeHelper {
     final newBottom = adjustEdgeToGrid(originalRect.bottom, gridSize.height,
         roundingMode: roundingModeBottom);
 
-    if (changeableEdges != null) {
-      return originalRect.copyWith(
-          left: changeableEdges!.isLeft ? newLeft : null,
-          top: changeableEdges!.isTop ? newTop : null,
-          right: changeableEdges!.isRight ? newRight : null,
-          bottom: changeableEdges!.isBottom ? newBottom : null);
-    }
     return NodeRect.fromLTRB(newLeft, newTop, newRight, newBottom);
   }
 
@@ -83,38 +79,94 @@ class ResizeHelper {
 
   NodeRect _getNewRectWithinBoundsOnGrid(
       NodeRect rectOnGrid, NodeRect originalRect) {
-    double newWidth = enforceBounds(
-        rectOnGrid.width, minimumSizeOnGrid.width, maximumSizeOnGrid?.width);
-    double newHeight = enforceBounds(
-        rectOnGrid.height, minimumSizeOnGrid.height, maximumSizeOnGrid?.height);
+    final rectOnGridIfChangeable = originalRect.copyWith(
+        left: changeableEdges.left ? rectOnGrid.left : null,
+        top: changeableEdges.top ? rectOnGrid.top : null,
+        right: changeableEdges.right ? rectOnGrid.right : null,
+        bottom: changeableEdges.bottom ? rectOnGrid.bottom : null);
 
-    if (newWidth != rectOnGrid.width) {
+    final widthConstraintsDelta = getLimitDelta(rectOnGridIfChangeable.width,
+        minimum: minimumNodeSize.width, maximum: maximumNodeSize.width);
+    final heightConstraintsDelta = getLimitDelta(rectOnGridIfChangeable.height,
+        minimum: minimumNodeSize.height, maximum: maximumNodeSize.height);
+
+    if (widthConstraintsDelta != 0) {
       // If the resized width did not satisfy the constraints, either the left
-      // or the right edge needs to be moved accordingly, depending on which
-      // edge is changeable and which original edge is closer to the next grid line
-      if ((changeableEdges == null &&
-              rectOnGrid.isLeftBoundCloserThanRight(originalRect)) ||
-          changeableEdges!.isRight) {
-        rectOnGrid.right = rectOnGrid.left + newWidth;
+      // or the right edge needs to be moved accordingly. Default is right edge.
+      bool adjustLeft = false;
+      final adjustedLeft = adjustEdgeToGrid(
+          widthConstraintsDelta > 0
+              ? rectOnGrid.right - maximumNodeSize.width
+              : rectOnGrid.right - minimumNodeSize.width,
+          gridSize.width,
+          minimum: rectOnGrid.right - maximumNodeSize.width,
+          maximum: rectOnGrid.right - minimumNodeSize.width);
+      final adjustedRight = adjustEdgeToGrid(
+          widthConstraintsDelta > 0
+              ? rectOnGrid.left + minimumNodeSize.width
+              : rectOnGrid.left + maximumNodeSize.width,
+          gridSize.width,
+          minimum: rectOnGrid.left + minimumNodeSize.width,
+          maximum: rectOnGrid.left + maximumNodeSize.width);
+      final adjustedBounds = rectOnGridIfChangeable.copyWith(
+          left: adjustedLeft, right: adjustedRight);
+
+      if (changeableEdges.left) {
+        if (changeableEdges.right) {
+          // Both edges are changeable: Which original edge needs to be moved
+          // less far to satisfy the constraint?
+          adjustLeft = adjustedBounds.isLeftBoundCloserThanRight(originalRect);
+        } else {
+          adjustLeft = true;
+        }
+      }
+
+      if (adjustLeft) {
+        rectOnGridIfChangeable.left = adjustedBounds.left;
       } else {
-        rectOnGrid.left = rectOnGrid.right - newWidth;
+        rectOnGridIfChangeable.right = adjustedBounds.right;
       }
     }
 
-    if (newHeight != rectOnGrid.height) {
+    if (heightConstraintsDelta != 0) {
       // If the resized height did not satisfy the constraints, either the top
-      // or the bottom edge needs to be moved accordingly, depending on which
-      // edge is changeable and which original edge is closer to the next grid line
-      if ((changeableEdges == null &&
-              rectOnGrid.isTopBoundCloserThanBottom(originalRect)) ||
-          changeableEdges!.isBottom) {
-        rectOnGrid.bottom = rectOnGrid.top + newHeight;
+      // or the bottom edge needs to be moved accordingly. Default is bottom edge.
+      bool adjustTop = false;
+      final adjustedTop = adjustEdgeToGrid(
+          heightConstraintsDelta > 0
+              ? rectOnGrid.bottom - maximumNodeSize.height
+              : rectOnGrid.bottom - minimumNodeSize.height,
+          gridSize.height,
+          minimum: rectOnGrid.bottom - maximumNodeSize.height,
+          maximum: rectOnGrid.bottom - minimumNodeSize.height);
+      final adjustedBottom = adjustEdgeToGrid(
+          heightConstraintsDelta > 0
+              ? rectOnGrid.top + minimumNodeSize.height
+              : rectOnGrid.top + maximumNodeSize.height,
+          gridSize.height,
+          minimum: rectOnGrid.top + minimumNodeSize.height,
+          maximum: rectOnGrid.top + maximumNodeSize.height);
+      final adjustedBounds = rectOnGridIfChangeable.copyWith(
+          top: adjustedTop, bottom: adjustedBottom);
+
+      if (changeableEdges.top) {
+        if (changeableEdges.bottom) {
+          // Both edges are changeable: Which original edge needs to be moved
+          // less far to satisfy the constraint?
+          adjustTop = adjustedBounds.isTopBoundCloserThanBottom(originalRect);
+        } else {
+          adjustTop = true;
+        }
+      }
+
+      if (adjustTop) {
+        rectOnGrid.top = adjustedBounds.top;
       } else {
-        rectOnGrid.top = rectOnGrid.bottom - newHeight;
+        rectOnGrid.bottom = adjustedBounds.bottom;
       }
     }
 
-    return rectOnGrid;
+    return rectOnGridIfChangeable;
   }
 
   static Size _getMinimumSizeOnGrid(Size gridSize, Size? minimumNodeSize) {
