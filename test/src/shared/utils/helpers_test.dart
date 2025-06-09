@@ -134,41 +134,44 @@ void main() {
   });
 
   ///
-  /// getLimitDelta
+  /// getConstraintDelta
   ///
 
-  group('getLimitDelta', () {
-    test('getLimitDelta should return 0 if no constraints are given', () {
-      final result = getLimitDelta(42);
+  group('getConstraintDelta', () {
+    test('getConstraintDelta should return 0 if no constraints are given', () {
+      final result = getConstraintDelta(42);
       expect(result, 0);
     });
 
-    test('getLimitDelta should return 0 if no constraints are exceeded', () {
-      final result = getLimitDelta(42, minimum: 41, maximum: 43);
+    test('getConstraintDelta should return 0 if no constraints are exceeded',
+        () {
+      final result = getConstraintDelta(42, minimum: 41, maximum: 43);
       expect(result, 0);
     });
 
-    test('getLimitDelta should return -1 if the minimum is not met by 1', () {
-      final result = getLimitDelta(40, minimum: 41, maximum: 43);
+    test('getConstraintDelta should return -1 if the minimum is not met by 1',
+        () {
+      final result = getConstraintDelta(40, minimum: 41, maximum: 43);
       expect(result, -1);
     });
 
     test(
-        'getLimitDelta should return the negative delta between the minimum and the tested value if it is too low',
+        'getConstraintDelta should return the negative delta between the minimum and the tested value if it is too low',
         () {
-      final result = getLimitDelta(17, minimum: 41, maximum: 43);
+      final result = getConstraintDelta(17, minimum: 41, maximum: 43);
       expect(result, -24);
     });
 
-    test('getLimitDelta should return 1 if the maximum is exceeded by 1', () {
-      final result = getLimitDelta(44, minimum: 41, maximum: 43);
+    test('getConstraintDelta should return 1 if the maximum is exceeded by 1',
+        () {
+      final result = getConstraintDelta(44, minimum: 41, maximum: 43);
       expect(result, 1);
     });
 
     test(
-        'getLimitDelta should return the positive delta between the maximum and the tested value if it is too high',
+        'getConstraintDelta should return the positive delta between the maximum and the tested value if it is too high',
         () {
-      final result = getLimitDelta(79, minimum: 41, maximum: 43);
+      final result = getConstraintDelta(79, minimum: 41, maximum: 43);
       expect(result, 36);
     });
   });
@@ -262,6 +265,74 @@ void main() {
         () {
       final value = enforceBounds(-40, -100, -50);
       expect(value, -50);
+    });
+  });
+
+  ///
+  /// coverDistanceByGridEdges
+  ///
+  group('coverDistanceByGridEdges', () {
+    test(
+        'coverDistanceByGridEdges should return 0 if the given distance is 0 and keepBelowDistance=false',
+        () {
+      final value = coverDistanceByGridEdges(0, 32, keepBelowDistance: false);
+      expect(value, 0);
+    });
+
+    test(
+        'coverDistanceByGridEdges should return 0 if the given distance is 0 and keepBelowDistance=true',
+        () {
+      final value = coverDistanceByGridEdges(0, 32, keepBelowDistance: true);
+      expect(value, 0);
+    });
+
+    test(
+        'coverDistanceByGridEdges should return 1 if the distance is exactly equal to the grid edge',
+        () {
+      final value = coverDistanceByGridEdges(32.7, 32.7);
+      expect(value, 1);
+    });
+
+    test(
+        'coverDistanceByGridEdges should return -1 if the distance is the negative of the grid edge',
+        () {
+      final value = coverDistanceByGridEdges(-32.7, 32.7);
+      expect(value, -1);
+    });
+
+    test(
+        'coverDistanceByGridEdges should return 5 if the distance is exactly the grid edge x 5',
+        () {
+      final value = coverDistanceByGridEdges(200, 40);
+      expect(value, 5);
+    });
+
+    test(
+        'coverDistanceByGridEdges should return 4 if the grid edge x 4 is needed to surpass the distance',
+        () {
+      final value = coverDistanceByGridEdges(100, 32);
+      expect(value, 4);
+    });
+
+    test(
+        'coverDistanceByGridEdges should return -2 if the grid edge x -2 is needed to surpass the distance',
+        () {
+      final value = coverDistanceByGridEdges(-30, 16);
+      expect(value, -2);
+    });
+
+    test(
+        'coverDistanceByGridEdges should return 3 if the grid edge x 3 is needed to stay just below the distance',
+        () {
+      final value = coverDistanceByGridEdges(100, 32, keepBelowDistance: true);
+      expect(value, 3);
+    });
+
+    test(
+        'coverDistanceByGridEdges should return -1 if the grid edge x -1 is needed to stay just below the distance',
+        () {
+      final value = coverDistanceByGridEdges(-30, 16, keepBelowDistance: true);
+      expect(value, -1);
     });
   });
 

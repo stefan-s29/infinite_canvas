@@ -86,15 +86,22 @@ class NodeRect {
   }
 
   NodeRect transform(
-      double Function(double, {required bool leftOrTop}) transformer,
+      double Function(double,
+              {required bool leftOrTop, required bool horizontal})
+          transformer,
       {ChangeableEdges changedEdges = ChangeableEdges.all}) {
     return copyWith(
-        left: changedEdges.left ? transformer(left, leftOrTop: true) : left,
-        top: changedEdges.top ? transformer(top, leftOrTop: true) : top,
-        right:
-            changedEdges.right ? transformer(right, leftOrTop: false) : right,
+        left: changedEdges.left
+            ? transformer(left, leftOrTop: true, horizontal: true)
+            : left,
+        top: changedEdges.top
+            ? transformer(top, leftOrTop: true, horizontal: false)
+            : top,
+        right: changedEdges.right
+            ? transformer(right, leftOrTop: false, horizontal: true)
+            : right,
         bottom: changedEdges.bottom
-            ? transformer(bottom, leftOrTop: false)
+            ? transformer(bottom, leftOrTop: false, horizontal: false)
             : bottom);
   }
 

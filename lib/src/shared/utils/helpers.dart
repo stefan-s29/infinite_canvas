@@ -39,11 +39,15 @@ bool exceedsLimit(double checkedValue, {double? minimum, double? maximum}) {
       (maximum != null && checkedValue > maximum);
 }
 
-double getLimitDelta(double checkedValue, {double? minimum, double? maximum}) {
+/// For a given value and a minimum and maximum,
+/// returns a negative value for the distance to the minimum if too low,
+/// returns a positive value for the distance to the maximum if too high
+double getConstraintDelta(double checkedValue,
+    {double? minimum, double? maximum}) {
   if (minimum != null && checkedValue < minimum) {
-    return checkedValue - minimum; // return a negative value if too small
+    return checkedValue - minimum;
   } else if (maximum != null && checkedValue > maximum) {
-    return checkedValue - maximum; // return a positive value if too big
+    return checkedValue - maximum;
   }
   return 0;
 }
@@ -59,6 +63,21 @@ double enforceBounds(double value, double? min, double? max) {
   if (max != null && value > max) return max;
   if (min != null && value < min) return min;
   return value;
+}
+
+/// Returns the whole number of grid edges required to surpass a given distance;
+/// keepBelowDistance: if true, stay just below the distance
+///                    rather than surpassing it
+int coverDistanceByGridEdges(double distance, double gridEdge,
+    {bool keepBelowDistance = false}) {
+  if (distance % gridEdge == 0) {
+    return (distance / gridEdge).round();
+  }
+  final oneMoreToSurpass = keepBelowDistance ? 0 : 1;
+  if (distance >= 0) {
+    return (distance / gridEdge).floor() + oneMoreToSurpass;
+  }
+  return (distance / gridEdge).ceil() - oneMoreToSurpass;
 }
 
 extension SizeWithinBounds on Size {
