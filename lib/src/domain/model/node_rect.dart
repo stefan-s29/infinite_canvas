@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
@@ -90,6 +91,20 @@ class NodeRect {
         right ?? this.right, bottom ?? this.bottom);
   }
 
+  /// Returns a copy of the rectangle that is resized by resizeOffset
+  /// by moving the edges selected by changeableEdges
+  NodeRect resize(Offset resizeOffset, ChangeableEdges changeableEdges) {
+    return copyWith(
+        left: changeableEdges.left ? min(right, left + resizeOffset.dx) : null,
+        top: changeableEdges.top ? min(bottom, top + resizeOffset.dy) : null,
+        right:
+            changeableEdges.right ? max(left, right + resizeOffset.dx) : null,
+        bottom:
+            changeableEdges.bottom ? max(top, bottom + resizeOffset.dy) : null);
+  }
+
+  /// Returns a copy of the rectangle where each coordinate property is defined
+  /// by applying a given transformer function on the original coordinate
   NodeRect transform(TransformerFunction transformer,
       {ChangeableEdges changedEdges = ChangeableEdges.all}) {
     return copyWith(
@@ -100,6 +115,9 @@ class NodeRect {
             changedEdges.bottom ? transformer(bottom, EdgeType.bottom) : null);
   }
 
+  /// Returns a copy of the rectangle that satisfies the given min/max
+  /// constraints by moving either the left or right and either
+  /// the top or bottom edge
   NodeRect adjustToBounds(Size min, Size max,
       {bool moveLeftEdge = false, bool moveTopEdge = false}) {
     final adjustedSize = size.adjustToBounds(min: min, max: max);
@@ -111,6 +129,8 @@ class NodeRect {
     );
   }
 
+  /// Returns the position on the grid defined by the given gridSize with the
+  /// minimum distance to the top left or bottom right corner of the rectangle
   Offset getClosestSnapPosition(Size gridSize) {
     final snappedX =
         _getClosestSnapPositionForAxis(left, width, gridSize.width);
@@ -138,10 +158,14 @@ class NodeRect {
     return snapAtEndDelta < snapAtStartDelta ? snapAtEndPos : snapAtStartPos;
   }
 
+  /// Returns true if the left bounds of this and the other given rectangle
+  /// are closer to each other than the right bounds
   bool isLeftBoundCloserThanRight(NodeRect otherBounds) {
     return (otherBounds.left - left).abs() < (otherBounds.right - right).abs();
   }
 
+  /// Returns true if the top bounds of this and the other given rectangle
+  /// are closer to each other than the bottom bounds
   bool isTopBoundCloserThanBottom(NodeRect otherBounds) {
     return (otherBounds.top - top).abs() < (otherBounds.bottom - bottom).abs();
   }

@@ -152,6 +152,48 @@ void main() {
       });
     });
 
+    group('resize()', () {
+      test(
+          'resize() should return an identical copy of the object if the given offset is 0/0',
+          () {
+        final resizedRect = nodeRect.resize(Offset.zero, ChangeableEdges.all);
+        expect(resizedRect, nodeRect);
+      });
+
+      test(
+          'resize() should return an identical copy of the object if no edges are changeable',
+          () {
+        final resizedRect =
+            nodeRect.resize(const Offset(10, 50), ChangeableEdges.none);
+        expect(resizedRect, nodeRect);
+      });
+
+      test('resize() should resize the rectangle by moving the selected edges',
+          () {
+        final resizedRect = nodeRect.resize(
+            const Offset(10, 20),
+            const ChangeableEdges(
+                left: false, top: true, right: true, bottom: false));
+        expect(resizedRect.left, -10);
+        expect(resizedRect.top, 36);
+        expect(resizedRect.right, 200);
+        expect(resizedRect.bottom, 48);
+      });
+
+      test(
+          'resize() should not move any edge beyond the other coordinate on the same axis',
+          () {
+        final resizedRect = nodeRect.resize(
+            const Offset(-200, 100),
+            const ChangeableEdges(
+                left: false, top: true, right: true, bottom: false));
+        expect(resizedRect.left, -10);
+        expect(resizedRect.top, 48);
+        expect(resizedRect.right, -10);
+        expect(resizedRect.bottom, 48);
+      });
+    });
+
     group('transform()', () {
       test(
           'transform() should return an identical copy of the object if transformer is the identity function',

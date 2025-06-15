@@ -73,20 +73,8 @@ class _DragHandleState extends State<DragHandle> {
           if (!widget.controller.mouseDown) return;
 
           draggingOffset = draggingOffset + details.delta;
-          NodeRect newNodeRect = initialNodeRect.copyWith(
-              left: dhAlignment.left
-                  ? initialNodeRect.left + draggingOffset.dx
-                  : null,
-              top: dhAlignment.top
-                  ? initialNodeRect.top + draggingOffset.dy
-                  : null,
-              right: dhAlignment.right
-                  ? initialNodeRect.right + draggingOffset.dx
-                  : null,
-              bottom: dhAlignment.bottom
-                  ? initialNodeRect.bottom + draggingOffset.dy
-                  : null);
-
+          NodeRect newNodeRect =
+              initialNodeRect.resize(draggingOffset, dhAlignment);
           if (canvasConfig.snapResizeToGrid) {
             final resizeHelper = ResizeHelper(
                 canvasConfig.gridSize,
