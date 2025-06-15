@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part '../../domain/model/changeable_edges.freezed.dart';
+part 'changeable_edges.freezed.dart';
 
 @freezed
 class ChangeableEdges with _$ChangeableEdges {
