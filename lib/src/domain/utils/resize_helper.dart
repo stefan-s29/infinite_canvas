@@ -4,6 +4,7 @@ import 'package:infinite_canvas/src/domain/model/node_rect.dart';
 import 'package:infinite_canvas/src/shared/utils/helpers.dart';
 
 import '../../shared/model/changeable_edges.dart';
+import 'edge_type.dart';
 
 /// Class to handle resizing of nodes while snapping to the grid
 /// and respecting the min/max node size
@@ -37,11 +38,10 @@ class ResizeHelper {
     );
   }
 
-  double _adjustAllChangeableEdgesToGrid(edgePos,
-      {required bool leftOrTop, required bool horizontal}) {
-    final gridEdge = horizontal ? gridSize.width : gridSize.height;
-    final roundingMode =
-        _getRoundingModeForSnapMode(snapMode, edgePos, leftOrTop: leftOrTop);
+  double _adjustAllChangeableEdgesToGrid(double edgePos, EdgeType edgeType) {
+    final gridEdge = edgeType.isHorizontal ? gridSize.width : gridSize.height;
+    final roundingMode = _getRoundingModeForSnapMode(snapMode, edgePos,
+        leftOrTop: edgeType.isLeftOrTop);
     return adjustEdgeToGrid(edgePos, gridEdge, roundingMode: roundingMode);
   }
 
@@ -77,19 +77,18 @@ class ResizeHelper {
       maximum: maxNodeSize.height,
     );
 
-    calcMovedEdgeCandidate(double snappedEdgePos,
-        {required bool leftOrTop, required bool horizontal}) {
-      if (horizontal) {
+    calcMovedEdgeCandidate(double snappedEdgePos, EdgeType edge) {
+      if (edge.isHorizontal) {
         if (widthConstraintsDelta == 0) {
           return snappedEdgePos;
         }
-        return _moveEdgeOnGridToSatisfyConstraint(
-            snappedEdgePos, gridSize.width, widthConstraintsDelta, leftOrTop);
+        return _moveEdgeOnGridToSatisfyConstraint(snappedEdgePos,
+            gridSize.width, widthConstraintsDelta, edge.isLeftOrTop);
       } else if (heightConstraintsDelta == 0) {
         return snappedEdgePos;
       }
-      return _moveEdgeOnGridToSatisfyConstraint(
-          snappedEdgePos, gridSize.height, heightConstraintsDelta, leftOrTop);
+      return _moveEdgeOnGridToSatisfyConstraint(snappedEdgePos, gridSize.height,
+          heightConstraintsDelta, edge.isLeftOrTop);
     }
 
     final allMovedEdgeCandidates = snappedRect.transform(
@@ -115,12 +114,18 @@ class ResizeHelper {
     if (constraintDelta == 0) {
       return originalPos;
     }
-    final bool isTooLarge = constraintDelta > 0;
-    final int direction = leftOrTop ? -1 : 1;
-    final constraintRefPos = originalPos - direction * constraintDelta;
+
+    // For the left and top coordinates, enlarging the rectangle
+    // (negative constraintDelta) means adding a negative value and shrinking it
+    // (positive constraintDelta) means subtracting a negative value
+    final int enlargeDirection = leftOrTop ? -1 : 1;
+    // Calculate the nearest position that would satisfy the constraint
+    // (does NOT have to be on the grid) and its distance to the original pos
+    final constraintRefPos = originalPos - enlargeDirection * constraintDelta;
     final distanceToRefPos = constraintRefPos - originalPos;
-    final edgesNeeded = coverDistanceByGridEdges(distanceToRefPos, gridEdge,
-        keepBelowDistance: isTooLarge);
+    // By how many grid edges do we need to move the edge?
+    final edgesNeeded = coverDistanceByGridEdges(distanceToRefPos, gridEdge);
+
     return originalPos + gridEdge * edgesNeeded;
   }
 

@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:infinite_canvas/infinite_canvas.dart';
+import 'package:infinite_canvas/src/domain/utils/edge_type.dart';
 import 'package:infinite_canvas/src/shared/model/changeable_edges.dart';
 import 'package:test/test.dart';
 
@@ -155,12 +156,7 @@ void main() {
       test(
           'transform() should return an identical copy of the object if transformer is the identity function',
           () {
-        transformer(
-          double val, {
-          required bool leftOrTop,
-          required bool horizontal,
-        }) =>
-            val;
+        transformer(double val, EdgeType edgeType) => val;
         final transformedRect = nodeRect.transform(transformer);
         expect(transformedRect.left, nodeRect.left);
         expect(transformedRect.top, nodeRect.top);
@@ -171,12 +167,7 @@ void main() {
       test(
           'transform() should apply the transformer function to all bounds if all of them are changeable',
           () {
-        transformer(
-          double val, {
-          required bool leftOrTop,
-          required bool horizontal,
-        }) =>
-            val * 3;
+        transformer(double val, EdgeType edgeType) => val * 3;
         const changedEdges = ChangeableEdges.all;
         final transformedRect =
             nodeRect.transform(transformer, changedEdges: changedEdges);
@@ -190,12 +181,7 @@ void main() {
       test(
           'transform() should only apply the transformer function to changeable bounds',
           () {
-        transformer(
-          double val, {
-          required bool leftOrTop,
-          required bool horizontal,
-        }) =>
-            val * 3;
+        transformer(double val, EdgeType edgeType) => val * 3;
         const changedEdges =
             ChangeableEdges(left: false, top: true, right: true, bottom: false);
         final transformedRect =
@@ -209,12 +195,7 @@ void main() {
       test(
           'the result of the transform() function should order the horizontal and vertical coordinates correctly',
           () {
-        transformer(
-          double val, {
-          required bool leftOrTop,
-          required bool horizontal,
-        }) =>
-            val * -3;
+        transformer(double val, EdgeType edgeType) => val * -3;
         const changedEdges = ChangeableEdges.all;
         final transformedRect =
             nodeRect.transform(transformer, changedEdges: changedEdges);
@@ -228,12 +209,8 @@ void main() {
       test(
           'transform() should correctly assign the leftOrTop parameter of the transformer function',
           () {
-        transformer(
-          double val, {
-          required bool leftOrTop,
-          required bool horizontal,
-        }) =>
-            leftOrTop ? val + 5 : val / 2;
+        transformer(double val, EdgeType edgeType) =>
+            edgeType.isLeftOrTop ? val + 5 : val / 2;
         const changedEdges = ChangeableEdges.all;
         final transformedRect =
             nodeRect.transform(transformer, changedEdges: changedEdges);
@@ -246,12 +223,8 @@ void main() {
       test(
           'transform() should correctly assign the horizontal parameter of the transformer function',
           () {
-        transformer(
-          double val, {
-          required bool leftOrTop,
-          required bool horizontal,
-        }) =>
-            horizontal ? val * 4 : val - 16;
+        transformer(double val, EdgeType edgeType) =>
+            edgeType.isHorizontal ? val * 4 : val - 16;
         const changedEdges = ChangeableEdges.all;
         final transformedRect =
             nodeRect.transform(transformer, changedEdges: changedEdges);

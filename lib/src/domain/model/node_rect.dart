@@ -1,10 +1,12 @@
 import 'dart:ui';
 
+import 'package:flutter/cupertino.dart';
 import 'package:infinite_canvas/src/shared/model/changeable_edges.dart';
 import 'package:infinite_canvas/src/shared/utils/helpers.dart';
 
-typedef TransformerFunction = double Function(double,
-    {required bool leftOrTop, required bool horizontal});
+import '../utils/edge_type.dart';
+
+typedef TransformerFunction = double Function(double, EdgeType);
 
 /// A representation of the offset and size of a node;
 /// in contrast to the Rect class, the 4 main attributes are changeable here
@@ -91,18 +93,11 @@ class NodeRect {
   NodeRect transform(TransformerFunction transformer,
       {ChangeableEdges changedEdges = ChangeableEdges.all}) {
     return copyWith(
-        left: changedEdges.left
-            ? transformer(left, leftOrTop: true, horizontal: true)
-            : null,
-        top: changedEdges.top
-            ? transformer(top, leftOrTop: true, horizontal: false)
-            : null,
-        right: changedEdges.right
-            ? transformer(right, leftOrTop: false, horizontal: true)
-            : null,
-        bottom: changedEdges.bottom
-            ? transformer(bottom, leftOrTop: false, horizontal: false)
-            : null);
+        left: changedEdges.left ? transformer(left, EdgeType.left) : null,
+        top: changedEdges.top ? transformer(top, EdgeType.top) : null,
+        right: changedEdges.right ? transformer(right, EdgeType.right) : null,
+        bottom:
+            changedEdges.bottom ? transformer(bottom, EdgeType.bottom) : null);
   }
 
   NodeRect adjustToBounds(Size min, Size max,
