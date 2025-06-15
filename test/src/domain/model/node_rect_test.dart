@@ -139,6 +139,16 @@ void main() {
         expect(copiedRect.right, 777);
         expect(copiedRect.bottom, nodeRect.bottom);
       });
+
+      test(
+          'the result of copyWith() should order the horizontal and vertical coordinates correctly',
+          () {
+        final copiedRect = nodeRect.copyWith(left: 200, bottom: -25);
+        expect(copiedRect.left, 190);
+        expect(copiedRect.top, -25);
+        expect(copiedRect.right, 200);
+        expect(copiedRect.bottom, 16);
+      });
     });
 
     group('transform()', () {
@@ -158,9 +168,46 @@ void main() {
         expect(transformedRect.bottom, nodeRect.bottom);
       });
 
-      // TODO fix test
       test(
           'transform() should apply the transformer function to all bounds if all of them are changeable',
+          () {
+        transformer(
+          double val, {
+          required bool leftOrTop,
+          required bool horizontal,
+        }) =>
+            val * 3;
+        const changedEdges = ChangeableEdges.all;
+        final transformedRect =
+            nodeRect.transform(transformer, changedEdges: changedEdges);
+
+        expect(transformedRect.left, -30);
+        expect(transformedRect.top, 48);
+        expect(transformedRect.right, 570);
+        expect(transformedRect.bottom, 144);
+      });
+
+      test(
+          'transform() should only apply the transformer function to changeable bounds',
+          () {
+        transformer(
+          double val, {
+          required bool leftOrTop,
+          required bool horizontal,
+        }) =>
+            val * 3;
+        const changedEdges =
+            ChangeableEdges(left: false, top: true, right: true, bottom: false);
+        final transformedRect =
+            nodeRect.transform(transformer, changedEdges: changedEdges);
+        expect(transformedRect.left, -10);
+        expect(transformedRect.top, 48);
+        expect(transformedRect.right, 570);
+        expect(transformedRect.bottom, 48);
+      });
+
+      test(
+          'the result of the transform() function should order the horizontal and vertical coordinates correctly',
           () {
         transformer(
           double val, {
@@ -172,30 +219,10 @@ void main() {
         final transformedRect =
             nodeRect.transform(transformer, changedEdges: changedEdges);
 
-        expect(transformedRect.left, 30);
-        expect(transformedRect.top, -48);
-        expect(transformedRect.right, -570);
-        expect(transformedRect.bottom, -144);
-      });
-
-      // TODO fix test
-      test(
-          'transform() should only apply the transformer function to changeable bounds',
-          () {
-        transformer(
-          double val, {
-          required bool leftOrTop,
-          required bool horizontal,
-        }) =>
-            val * -3;
-        const changedEdges =
-            ChangeableEdges(left: false, top: true, right: true, bottom: false);
-        final transformedRect =
-            nodeRect.transform(transformer, changedEdges: changedEdges);
-        expect(transformedRect.left, -10);
-        expect(transformedRect.top, -48);
-        expect(transformedRect.right, -570);
-        expect(transformedRect.bottom, 48);
+        expect(transformedRect.left, -570);
+        expect(transformedRect.top, -144);
+        expect(transformedRect.right, 30);
+        expect(transformedRect.bottom, -48);
       });
 
       test(

@@ -3,6 +3,9 @@ import 'dart:ui';
 import 'package:infinite_canvas/src/shared/model/changeable_edges.dart';
 import 'package:infinite_canvas/src/shared/utils/helpers.dart';
 
+typedef TransformerFunction = double Function(double,
+    {required bool leftOrTop, required bool horizontal});
+
 /// A representation of the offset and size of a node;
 /// in contrast to the Rect class, the 4 main attributes are changeable here
 class NodeRect {
@@ -85,10 +88,7 @@ class NodeRect {
         right ?? this.right, bottom ?? this.bottom);
   }
 
-  NodeRect transform(
-      double Function(double,
-              {required bool leftOrTop, required bool horizontal})
-          transformer,
+  NodeRect transform(TransformerFunction transformer,
       {ChangeableEdges changedEdges = ChangeableEdges.all}) {
     return copyWith(
         left: changedEdges.left
