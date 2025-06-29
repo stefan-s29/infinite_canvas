@@ -6,6 +6,25 @@ Flutter infinite canvas that can be zoomed and panned.
 
 > There is also a menu for common actions and marquee for multiple selection.
 
+## Canvas Configuration
+
+Some properties of the canvas can be configured by a `CanvasConfig` object that needs to be passed
+to the `InfiniteCanvasController` as well as all `InfiniteCanvasNode` objects. The configurable
+properties include attributes of the grid, the nodes and the drag handles that are displayed around
+the edges and corners of a selected node. They can be changed dynamically during runtime if needed.
+
+|                    |                                                                                              |
+|--------------------|----------------------------------------------------------------------------------------------|
+| gridSize           | The initial size of a grid cell (width & height)                                             |
+| minimumGridSize    | The minimum size of a grid cell the grid can be scaled down to                               |
+| maximumGridSize    | The maximum size of a grid cell the grid can be scaled up to                                 |
+| dragHandleSize     | The size of the square-shaped drag handles positioned next to the corners and edges of nodes |
+| minimumNodeSize    | The minimum size a node can be shrunk down to                                                |
+| maximumNodeSize    | The maximum size a node can be enlarged to                                                   |
+| snapMovementToGrid | Snap the edges of a node to the grid while moving it on the canvas by dragging?              |
+| snapResizeToGrid   | Snap the edges of a node to the grid while resizing it using the drag handles?               |
+|--------------------|----------------------------------------------------------------------------------------------|
+
 ## Example
 
 ```dart
@@ -42,11 +61,24 @@ class _ExampleState extends State<Example> {
   @override
   void initState() {
     super.initState();
+    final canvasConfig = CanvasConfig(
+      gridSize: Size(32.0, 32.0),
+      minimumGridSize: Size(16.0, 16.0),
+      maximumGridSize: Size(128.0, 128.0),
+      dragHandleSize: Size(10, 10),
+      minimumNodeSize: Size(32, 32),
+      maximumNodeSize: Size(256, 256),
+      snapMovementToGrid: true,
+      snapResizeToGrid: true,
+    );
+    
     final rectangleNode = InfiniteCanvasNode(
       key: UniqueKey(),
       label: 'Rectangle',
       offset: const Offset(400, 300),
       size: const Size(200, 200),
+      canvasConfig: canvasConfig,
+      resizeHandlesMode: ResizeHandlesMode.cornersAndEdges,
       child: Builder(
         builder: (context) {
           return CustomPaint(
@@ -69,6 +101,8 @@ class _ExampleState extends State<Example> {
       label: 'Triangle',
       offset: const Offset(550, 300),
       size: const Size(200, 200),
+      canvasConfig: canvasConfig,
+      resizeHandlesMode: ResizeHandlesMode.cornersAndEdges,
       child: Builder(
         builder: (context) {
           return CustomPaint(
@@ -95,6 +129,8 @@ class _ExampleState extends State<Example> {
       label: 'Circle',
       offset: const Offset(500, 450),
       size: const Size(200, 200),
+      canvasConfig: canvasConfig,
+      resizeHandlesMode: ResizeHandlesMode.cornersAndEdges,
       child: Builder(
         builder: (context) {
           return CustomPaint(
@@ -115,22 +151,26 @@ class _ExampleState extends State<Example> {
       triangleNode,
       circleNode,
     ];
-    controller = InfiniteCanvasController(nodes: nodes, edges: [
-      InfiniteCanvasEdge(
-        from: rectangleNode.key,
-        to: triangleNode.key,
-        label: '4 -> 3',
-      ),
-      InfiniteCanvasEdge(
-        from: rectangleNode.key,
-        to: circleNode.key,
-        label: '[] -> ()',
-      ),
-      InfiniteCanvasEdge(
-        from: triangleNode.key,
-        to: circleNode.key,
-      ),
-    ]);
+    controller = InfiniteCanvasController(
+      canvasConfig: canvasConfig,
+      nodes: nodes,
+      edges: [
+        InfiniteCanvasEdge(
+          from: rectangleNode.key,
+          to: triangleNode.key,
+          label: '4 -> 3',
+        ),
+        InfiniteCanvasEdge(
+          from: rectangleNode.key,
+          to: circleNode.key,
+          label: '[] -> ()',
+        ),
+        InfiniteCanvasEdge(
+          from: triangleNode.key,
+          to: circleNode.key,
+        ),
+      ]
+    );
   }
 
   @override

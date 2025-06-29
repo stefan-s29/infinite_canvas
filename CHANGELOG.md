@@ -1,12 +1,12 @@
 ## 0.0.10
 
-- Added DragHandlers for edges to resize a node in only one dimension @schaetz
-- Added "resizeMode" attribute to Nodes to configure the amount of drag handlers @schaetz
-- Made movement and resizing of nodes smoother by replacing GestureDetector by Listener widget @schaetz
-- Implemented snapping to grid on resize @schaetz
-- Implemented snapping to grid on movement within the Node class without the need for a formatter, also snapping at the right or bottom edges (depending on proximity) @schaetz
-- Added "snapMovementToGrid" and "snapResizeToGrid" attributes to Controller to make snapping configurable individually for both actions @schaetz
-- Added "Settings" menu item with "Snap To Grid" option @schaetz
+- Added DragHandlers for edges to resize a node in only one dimension @stefan-s29
+- Added "resizeMode" attribute to Nodes to configure the amount of drag handlers @stefan-s29
+- Made movement and resizing of nodes smoother by replacing GestureDetector by Listener widget @stefan-s29
+- Implemented snapping to grid on resize @stefan-s29
+- Implemented snapping to grid on movement within the Node class without the need for a formatter, also snapping at the right or bottom edges (depending on proximity) @stefan-s29
+- Added "snapMovementToGrid" and "snapResizeToGrid" attributes to Controller to make snapping configurable individually for both actions @stefan-s29
+- Added "Settings" menu item with "Snap To Grid" option @stefan-s29
 
 ## 0.0.9
 
